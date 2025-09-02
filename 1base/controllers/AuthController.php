@@ -49,56 +49,14 @@ class AuthController_Base extends Controller
         $username = trim($input->username ?? '');
         $password = $input->password ?? '';
 
-        // Escenario de Error: Datos Faltantes
-        if (empty($username) || empty($password)) {
-            $errorData = ['success' => false, 'message' => $this->translate('login_api_error_missing_fields')];
-            // Devolvemos un objeto JsonResponse con código 400 Bad Request.
-            return $this->json($errorData, 400);
+        $authService = $this->getService('Auth');
+        $loginCheck = $authService->checkLogin($username, $password, $this->translator);
+
+        if ($loginCheck['success']) {
+            return $this->json(['redirectUrl' => $loginCheck['redirectUrl'], 'message' => $loginCheck['message']]);
+        }else{
+            return $this->jsonError($loginCheck['message'], $loginCheck['statusCode']);
         }
-
-        // 2. Usar el modelo User para encontrar al usuario por su username.
-        $user =  $this->getModel("User")->find($username, 'username');
-
-        // Escenario de Fracaso: Usuario no encontrado
-        if (!$user) {
-            $errorData = ['success' => false, 'message' => $this->translate('login_api_error_credentials')];
-            // Devolvemos un 401 Unauthorized para no dar pistas a los atacantes.
-            return $this->json($errorData, 401);
-        }
-
-        // Escenario de Error: Cuenta bloqueada
-        if ($user->tries >= 5) {
-            $errorData = ['success' => false, 'message' => $this->translate('login_api_error_account_locked')];
-            // Devolvemos un 429 Too Many Requests.
-            return $this->json($errorData, 429);
-        }
-
-         // 3. Verificar la contraseña.
-        if (password_verify($password, $user->password)) {            
-            // --- ÉXITO ---
-            $user->resetLoginTries();      
-            $token = $this->getModel('UserSession')->createForUser($user->id_user, $user->id_dealer);
-            // 5. Enviar el token al navegador en una cookie segura.
-            $cookieOptions = [
-                'expires' => time() + (86400 * 30), // 30 días
-                'path' => '/',
-                // 'domain' => '.yourdomain.com', // Descomentar en producción
-                // 'secure' => true,   // Descomentar en producción (solo enviar por HTTPS)
-                'httponly' => true, // El JS no puede acceder a la cookie, crucial para la seguridad
-                'samesite' => 'Lax' // Protección contra ataques CSRF
-            ];
-            setcookie('session_token', $token, $cookieOptions);
-            
-            // 6. Preparar y enviar la respuesta JSON de éxito.
-            return $this->json(['redirectUrl' => '/app', 'message' => $this->translate('login_api_success_redirecting')]);
-        }
-        else{
-            // --- FRACASO: Contraseña incorrecta ---
-            $user->incrementLoginTries();
-
-            // Devolvemos un 401 Unauthorized.
-            return $this->jsonError($this->translate('login_api_error_credentials'), 401);
-        }        
     }
 
     /**

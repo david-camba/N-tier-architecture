@@ -37,6 +37,8 @@ class AuthService_Base extends Service
      */
     protected function setUserContextAndAuthenticateRoute(array $routeInfo, ?User $authenticatedUser): array
     {
+        /** @var User_Base|null $authenticatedUser */
+        
         // 1. We keep the user (or null) in the context of the app.
         $this->setContext('user', $authenticatedUser);
 
@@ -161,6 +163,86 @@ class AuthService_Base extends Service
         }
 
         return false;
+    }
+
+    public function checkLogin(string $username, string $password, TranslatorService $translator) : array //JSON
+    {
+        /** @var TranslatorService_Base $translator */
+        
+        // Escenario de Error: Datos Faltantes
+        if (empty($username) || empty($password)) {
+            $errorMessage = $translator->get('login_api_error_missing_fields');
+            // Devolvemos un objeto JsonResponse con código 400 Bad Request.
+            return [
+                "success" => false,
+                "message" => $errorMessage,
+                "statusCode" => 400,
+            ];
+        }
+
+        // 2. Usar el modelo User para encontrar al usuario por su username.
+        /** @var User_Base|null $user */
+        $user =  $this->getModel("User")->find($username, 'username');
+
+        // Escenario de Fracaso: Usuario no encontrado
+        if (!$user) {
+            $errorMessage = $translator->get('login_api_error_credentials');
+            // Devolvemos un 401 Unauthorized para no dar pistas a los atacantes.
+            return [
+                "success" => false,
+                "message" => $errorMessage,
+                "statusCode" => 401,
+            ];
+        }
+
+        // Escenario de Error: Cuenta bloqueada
+        if ($user->tries >= 5) {
+            $user->incrementLoginTries();
+            $errorMessage = $translator->get('login_api_error_account_locked');
+            // Devolvemos un 429 Too Many Requests.
+            return [
+                "success" => false,
+                "message" => $errorMessage,
+                "statusCode" => 429,
+            ];
+        }
+
+         // 3. Verificar la contraseña.
+        if (password_verify($password, $user->password)) {            
+            // --- ÉXITO ---
+            $user->resetLoginTries();     
+            
+            /** @var UserSession_Base $userSession */
+            $userSession = $this->getModel('UserSession');
+            $token = $userSession->createForUser($user->id_user, $user->id_dealer);
+
+            // 5. Enviar el token al navegador en una cookie segura.
+            $cookieOptions = [
+                'expires' => time() + (86400 * 30), // 30 días
+                'path' => '/',
+                // 'domain' => '.yourdomain.com', // Descomentar en producción
+                // 'secure' => true,   // Descomentar en producción (solo enviar por HTTPS)
+                'httponly' => true, // El JS no puede acceder a la cookie, crucial para la seguridad
+                'samesite' => 'Lax' // Protección contra ataques CSRF
+            ];
+            setcookie('session_token', $token, $cookieOptions);
+
+            return [
+                "success" => true,
+                "message" => $translator->get('login_api_success_redirecting'),
+                'redirectUrl' => '/app'
+            ];
+        }
+        else{
+            // --- FRACASO: Contraseña incorrecta ---
+            $user->incrementLoginTries();
+            // Devolvemos un 401 Unauthorized.
+            return [
+                "success" => false,
+                "message" => $translator->get('login_api_error_credentials'),
+                "statusCode" => 401,
+            ];
+        }        
     }
 
     protected function setUserLayer($userLayer): void

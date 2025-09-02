@@ -13,6 +13,8 @@ class ConfiguratorController_Base extends Controller
     public function showConfigurator()
     {
         $user = $this->getContext('user');
+
+        /** @var ConfSession_Base $confSessionModel */
         $confSessionModel = $this->getModel('ConfSession');
         
         // 1. LÓGICA DE CARGA DE LA SESIÓN DE CONFIGURACIÓN - for the future
@@ -30,7 +32,7 @@ class ConfiguratorController_Base extends Controller
 
         // Caso C: Si no hay ninguna sesión que cargar, creamos una nueva.
         if (!$activeSession) {
-            $activeSession = $this->getModel('ConfSession')->createForUser($user->id_user);
+            $activeSession = $confSessionModel->createForUser($user->id_user);
         }
         
         // 2. OBTENER LA LISTA DE PLANTILLAS DEL USUARIO - funcionalidad por hacer

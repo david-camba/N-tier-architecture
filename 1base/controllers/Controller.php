@@ -156,7 +156,7 @@ abstract class Controller
     /**
      * Atajo para devolver un RedirectResponse
      */
-    protected function redirect(string $url, $statusCode = 200)
+    protected function redirect(string $url, string|int $statusCode = 200)
     {
         $this->app->redirect($url, $statusCode);
         exit();
