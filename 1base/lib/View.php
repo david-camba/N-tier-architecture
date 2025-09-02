@@ -122,8 +122,8 @@ class View
             return;
         }
 
-        // 1. Buscar la vista más específica
-        $viewFileInfo = $this->app->findFile('view', $this->viewName, $userLayer);
+        // 1. Buscar la vista más específica que exista y no cargarla
+        $viewFileInfo = $this->app->findFiles('view', $this->viewName, $userLayer, false, false);
         if (!$viewFileInfo) {
             throw new Exception("Plantilla de vista no encontrada: {$this->viewName}");
         }
@@ -202,7 +202,7 @@ class View
         $importedTemplates = $this->findImported($content);
 
         foreach ($importedTemplates as $marker => $viewNameToFind) {
-            $importedInfo = $this->app->findFile('view', $viewNameToFind);
+            $importedInfo = $this->app->findFiles('view', $viewNameToFind, null, false, false);
             if ($importedInfo) {
                 // ANTES de reemplazar, compilamos la dependencia.
                 $this->processTemplate($importedInfo);
@@ -236,7 +236,7 @@ class View
         // Le pedimos a la App que busque la MISMA vista, pero limitando la
         // búsqueda a un nivel máximo igual al del padre. findFile se encargará
         // de ignorar la capa actual y las superiores, devolviendo la primera que encuentre.
-        return $this->app->findFile('view', $viewName, $maxParentLevel);
+        return $this->app->findFiles('view', $viewName, $maxParentLevel, false, false);
     }
         /**
      * Busca y extrae todos los marcadores de importación de tipo [VIEW_PATH:...]

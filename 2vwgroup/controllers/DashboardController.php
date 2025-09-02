@@ -1,5 +1,4 @@
 <?php
-require_once '1base/controllers/DashboardController.php';
 class DashboardController_2GrupoVW extends DashboardController_Base
 {  
 

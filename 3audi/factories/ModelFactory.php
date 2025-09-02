@@ -1,6 +1,4 @@
 <?php
-require_once '1base/factories/ModelFactory.php';
-
 class ModelFactory_3Audi extends ModelFactory_Base
 {
     public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null)

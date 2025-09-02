@@ -1,6 +1,4 @@
 <?php
-require_once '1base/controllers/AuthController.php';
-
 class AuthController_2GrupoVW extends AuthController_Base
 {
     public function showLogin() {

@@ -1,5 +1,4 @@
 <?php
-require_once '1base/helpers/MenuHelper.php';
 class MenuHelper_3Audi extends MenuHelper_Base
 {
     public function prepareMenuData(View $view, $pageTitleKey)

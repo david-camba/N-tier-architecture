@@ -1,6 +1,4 @@
 <?php
-require_once '2vwgroup/controllers/AuthController.php';
-
 class AuthController_3Audi extends AuthController_2GrupoVW
 {
     public function showLogin() {

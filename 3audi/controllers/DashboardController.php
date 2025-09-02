@@ -1,6 +1,4 @@
 <?php
-require_once '2vwgroup/controllers/DashboardController.php';
-
 class DashboardController_3Audi extends DashboardController_2GrupoVW 
 {
     public function showDashboard()

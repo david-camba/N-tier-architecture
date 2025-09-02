@@ -254,12 +254,14 @@ class App
      * @param string $type The type of component ('Controller', 'Model', etc.).
      * @param string $name The base name of the component ('Auth Controller').
      * @param array $constructorArgs The builder's entry arguments will be passed in an array.
+     * @param integer|null $userLayer Get a component from a specific layer  
+     * @param boolean $exactLayerOnly Get only the component from the fixed layer (don't use if it needs their parents)
      * @return object The instance of the requested object.
      */
     public function getComponent(string $type, string $name, array $constructorArgs = [], ?int $userLayer = null, bool $exactLayerOnly = false) : object
     {
         // 1. Encontrar la información del archivo y la capa.
-        $componentInfo = $this->findFile($type, $name, $userLayer, $exactLayerOnly);
+        $componentInfo = $this->findFiles($type, $name, $userLayer, $exactLayerOnly);
         debug("getComponent - componentInfo",$componentInfo,false);
 
         if (!$componentInfo) {
@@ -267,7 +269,7 @@ class App
         }
 
         // 2. Cargar el archivo y toda su cadena de herencia.
-        require_once $componentInfo['path'];
+        //require_once $componentInfo['path'];
 
         // 3. Construir el nombre de la clase final.
         $className = "{$name}_{$componentInfo['suffix']}";
@@ -285,6 +287,90 @@ class App
             return $reflection->newInstanceArgs($constructorArgs); //reflection nos permite N argumentos en un array
         }
     }
+
+    /**
+     * The unique "search engine". Find the route to a component file
+     * touring the hierarchy defined in the configuration.
+     *
+     * @param string $type The type of component ('controller', 'model').
+     * @param string $name The base name of the component.
+     * 
+     * 
+     * @param boolean $loadFiles If true, classes are automatically loaded with require_once. 
+     *                           If false, only paths are returned; the caller must handle loading. 
+     * @return array|null An array with ['path', 'suffix'] or null if it is not found.
+     */
+    public function findFiles(string $type, string $name, ?int $userLayer = null, bool $exactLayerOnly = false, bool $loadFiles=true) : ?array
+    {
+        if ($userLayer === null) { //if null, we get the user layer from context
+            //this allow us to call with specific range.
+            $userLayer = $this->userLayer ? $this->getUserLayer() : 1;
+        }
+
+        // Obtain the component subfolder from the configuration (ej: 'controllers').
+        $componentSubdir = $this->getConfig(['component_types',$type]) ?? null;
+        if (!$componentSubdir) {
+            throw new Exception("Tipo de componente desconocido: {$type}");
+        }
+        $extension = ($type === 'view') ? '.xsl' : '.php';
+        $relativePath = "{$componentSubdir}/{$name}{$extension}";
+
+        $foundFile = null;
+        $loadFiles = $loadFiles ? [] : false; //if loadFiles, we create an empty array to load them in the reverse order they are found to handle inheritance
+        
+        // Iterate about the hierarchy of this installation
+        foreach ($this->getConfig('layers') as $layerKey => $layerInfo) {
+
+            if ($userLayer < $layerInfo['layer']){     //if the userLayer is lower than the current layer, we wont look for a file           
+                continue;
+            }
+
+            // If we want exact level, and this is not, we skip it.
+            if ($exactLayerOnly && $layerInfo['layer'] != $userLayer) {
+                continue; 
+            }
+
+            // Obtain the layer information from the configuration.
+            $layerDir = $layerInfo['directory'];
+
+            $filePath = "{$layerDir}/{$relativePath}";
+            
+            $absolutePath = __DIR__ . '/../' . '/../' . $filePath; //We check if the file exists
+
+            if (file_exists($absolutePath)) {
+                if (is_array($loadFiles)) {
+                    $loadFiles[] = $absolutePath;
+                }
+
+                if ($foundFile === null){
+                    // Found! We return the information of the most specific layer.
+                    $foundFile = [
+                        'path'   => $absolutePath,
+                        'suffix' => $layerInfo['suffix'],
+                        'name' => $name,
+                        'level' => $layerInfo['layer']
+                    ];
+                }
+                continue; 
+            }
+
+            //If we are at the exact level we return
+            if ($exactLayerOnly && $layerInfo['layer'] == $userLayer) {
+                if (is_array($loadFiles) && !empty($loadFiles)) {
+                    require_once $loadFiles[0];
+                }
+                return $foundFile;
+            }
+        }
+        
+        // we load the files from the base to the highest layer
+        if (is_array($loadFiles) && !empty($loadFiles)) {
+            foreach (array_reverse($loadFiles) as $file) {
+                require_once $file;
+            }
+        }
+        return $foundFile;
+    }   
 
     /**
      * It is a parent :: calling method () dynamic that facilitates syntax
@@ -384,73 +470,6 @@ class App
         // 4. We instant the class.
         return new $className(...$args);
     }
-
-    /**
-     * The unique "search engine". Find the route to a component file
-     * touring the hierarchy defined in the configuration.
-     *
-     * @param string $type The type of component ('controller', 'model').
-     * @param string $name The base name of the component.
-     * @return array|null An array with ['path', 'suffix'] or null if it is not found.
-     */
-    public function findFile(string $type, string $name, ?int $userLayer = null, bool $exactLayerOnly = false) : array|null
-    {
-        if ($userLayer === null) { //if null, we get the user layer from context
-            //this allow us to call with specific range.
-            $userLayer = $this->userLayer ? $this->getUserLayer() : 1;
-        }
-
-        // Obtain the component subfolder from the configuration (ej: 'controllers').
-        $componentSubdir = $this->getConfig(['component_types',$type]) ?? null;
-        if (!$componentSubdir) {
-            throw new Exception("Tipo de componente desconocido: {$type}");
-        }
-        $extension = ($type === 'view') ? '.xsl' : '.php';
-        $relativePath = "{$componentSubdir}/{$name}{$extension}";
-
-        $currentLayer = max(array_column($this->getConfig('layers'), 'layer')); //get the level of the highest rank of the hierarchy
-        
-        // Iterate about the hierarchy of this installation
-        foreach ($this->getConfig('layers') as $layerKey => $layerInfo) {
-
-            if ($userLayer < $currentLayer){     //if the userLayer is lower than the current layer, we wont look for a file           
-                $currentLayer--;
-                continue;
-            }
-
-            // If we want exact level, and this is not, we skip it.
-            if ($exactLayerOnly && $currentLayer != $userLayer) {
-                $currentLayer--;
-                continue; 
-            }
-
-            // Obtain the layer information from the configuration.
-            $layerDir = $layerInfo['directory'];
-
-            $filePath = "{$layerDir}/{$relativePath}";
-            
-            $absolutePath = __DIR__ . '/../' . '/../' . $filePath; //We check if the file exists
-
-            if (file_exists($absolutePath)) {
-                // Found! We return the information of the most specific layer.
-                return [
-                    'path'   => $absolutePath,
-                    'suffix' => $layerInfo['suffix'],
-                    'name' => $name,
-                    'level' => $currentLayer
-                ];
-            }
-
-            //If we were at the exact level and we have not found it, we return null
-            if ($exactLayerOnly && $currentLayer == $userLayer) {
-                return null;
-            }
-
-            $currentLayer--;
-        }
-        return null;
-    }   
-
 
     /**
      * Access a configuration key using type path type 'a.b.c' or array ['a','b','c'].

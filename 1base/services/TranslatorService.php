@@ -72,12 +72,12 @@ class TranslatorService_Base extends Service implements TranslatorService
             // 3. Usamos findFile con 'exactLevelOnly' a 'true' para buscar el archivo
             // de traducción SOLO en este nivel exacto.
 
-            $fileInfo = $this->app->findFile('translation', $langCode, $layer, true);
+            $fileInfo = $this->app->findFiles('translation', $langCode, $layer, true, false);
 
             // 4. Si se encuentra un archivo de traducción para este nivel...
             if ($fileInfo) {
                 // ...cargamos su contenido...
-                $translations = require $fileInfo['path'];
+                $translations = require_once $fileInfo['path'];
                 
                 // ...y lo fusionamos con lo que ya teníamos.
                 // Las claves en $translations sobreescribirán a las de $mergedTranslations.
