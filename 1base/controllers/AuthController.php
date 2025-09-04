@@ -1,8 +1,17 @@
 <?php
-require_once '1base/controllers/Controller.php';
-
 class AuthController_Base extends Controller
 {
+    protected TranslatorService $translator;
+    protected AuthService $service;
+    protected UserSession $userSessionModel;
+
+    public function __construct(AuthService $service, TranslatorService $translator, UserSession $userSessionModel)
+    {
+        $this->translator = $translator;
+        $this->service = $service;
+        $this->userSessionModel = $userSessionModel;        
+    }
+
     public function showLogin()
     {
         //We can set values in our view when calling
@@ -49,7 +58,7 @@ class AuthController_Base extends Controller
         $username = trim($input->username ?? '');
         $password = $input->password ?? '';
 
-        $authService = $this->getService('Auth');
+        $authService = $this->service;
         $loginCheck = $authService->checkLogin($username, $password, $this->translator);
 
         if ($loginCheck['success']) {
@@ -69,27 +78,6 @@ class AuthController_Base extends Controller
      */
     public function doLogout()
     {
-        // 1. Obtener el token de la cookie.
-        $token = $_COOKIE['session_token'] ?? null;
-
-        if ($token) {
-            // 2. Usar el modelo para encontrar la sesión por el token.
-            $session = $this->getModel('UserSession')->find($token, 'token');
-
-            if ($session) {
-                // 3. Si la encontramos, la eliminamos de la base de datos.
-                $session->delete();
-            }
-
-            // 4. "Matamos" la cookie en el navegador, diciéndole que expire en el pasado.
-            setcookie('session_token', '', ['expires' => time() - 3600, 'path' => '/']);
-        }
-        
-        // 5. Limpiamos completamente la sesión de PHP.
-        session_unset();
-        session_destroy();
-
-        // 6. Devolvemos una respuesta de redirección a la página de login.
-        return $this->redirect('/login');
+        $this->service->handleLogout();
     }
 }

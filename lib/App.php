@@ -1,6 +1,4 @@
 <?php
-require_once 'lib/Router.php';
-
 /** 
 * App class 
 * 
@@ -10,6 +8,14 @@ require_once 'lib/Router.php';
 */
 class App
 {
+    private static ?App $instance = null;
+
+    public static function getInstance(): App {
+        if (self::$instance === null) {
+            throw new RuntimeException("App has not been initialized");
+        }
+        return self::$instance;
+    }
     /**
      * Store the complete configuration of the application loaded from Config.php.
      * @var array
@@ -25,8 +31,10 @@ class App
     private $userLayer = null; //control access to the 3 layers (vertical layers)
     private $userLevel = null; //control access to user role capabilities (horizontal layers)
 
-    private $translatorService = null; // Un caché para la instancia
     private $modelFactory = null; //guardamos la fábrica la primera vez que se genera para cachear las conexiones con bases de datos
+
+    private array $buildingStack = [];
+    private array $cachedComponents = [];
 
     //private $isApiRoute = false; // New property to remember the type of route.
     /**
@@ -36,6 +44,7 @@ class App
     public function __construct(array $config)
     {
         $this->config = $config;
+        self::$instance = $this;
     }
 
     /** 
@@ -48,13 +57,13 @@ class App
         try {
             $this->prepareDebugging();
             // 1. Obtain the router's action plan.
+            require_once 'lib/Router.php';
             $router = new Router();
             $requestedRouteInfo = $router->getRouteInfo();   
 
             // 2. Apply the session security logic.
-            $finalRouteInfo = $this->getService('Auth')->authenticateRequest($requestedRouteInfo);
-
-            debug("Peticion controller - routeInfo",$finalRouteInfo,false);
+            require_once 'lib/components/Component.php';
+            $finalRouteInfo = $this->buildService('AuthService')->authenticateRequest($requestedRouteInfo);
 
             //detect if is JSON request
             /*if (!empty($requestedRouteInfo['api_route'])) {                
@@ -85,13 +94,13 @@ class App
                         require_once $scriptPath;
                     } else {
                         // If the script does not exist, it is a 404 error.
-                        throw new Exception("Script legacy no encontrado: {$routeInfo['script_name']}", 404);
+                        throw new Exception("Script legacy no encontrado: {$finalRouteInfo['script_name']}", 404);
                     }
                     break;
 
                 default:
                     // If the Router returns an unknown, it is an internal error.
-                    throw new Exception("Tipo de ruta desconocido: '{$routeInfo['type']}'", 500);      
+                    throw new Exception("Tipo de ruta desconocido: '{$finalRouteInfo['type']}'", 500);      
             }
             exit();
         } catch (Throwable $e) {
@@ -161,7 +170,7 @@ class App
     $specializedControllerName = "{$controllerName}_{$roleSuffix}";
     try {
         // We try to obtain the controller with the suffix of the role.
-        $controller = $this->getController($specializedControllerName);        
+        $controller = $this->buildController($specializedControllerName);        
         // If we succeed, we use it. We do not need to check the method.
         return $controller->{$actionName}(...$params);
     } catch (Exception $e) {
@@ -169,7 +178,7 @@ class App
     }
 
     // 3. I try B: Use the normal controller, but look for the specialized method of the user's role.  
-    $controller = $this->getController($controllerName);
+    $controller = $this->buildController($controllerName);
     $specializedActionName = "{$actionName}_{$roleSuffix}";
 
     
@@ -242,8 +251,80 @@ class App
      * Inyecta automáticamente la App en el constructor. 
      * Nunca recibe argumentos aparte de "App", los parámetros recibidos se gestionan desde el método llamado, no desde la función
      */
-    public function getController(string $controllerName) {
-        return $this->getComponent('controller', $controllerName, [$this]);
+    public function buildController(string $controllerName) {
+        require_once 'lib/components/Controller.php';
+        return $this->buildComponent("controller", $controllerName);        
+    }
+
+    public function buildService(string $serviceName) {
+        require_once 'lib/components/Service.php';
+        return $this->buildComponent('service', $serviceName);        
+    }
+
+    public function buildHelper(string $helperName) {
+        require_once 'lib/components/Helper.php';
+        return $this->buildComponent('helper', $helperName);        
+    }
+
+
+    
+
+   
+
+
+    public function buildComponent(string $type, string $name, ?int $userLayer = null, bool $exactLayerOnly = false)
+    {        
+        if (isset($this->buildingStack[$type.$name])) {
+            throw new Exception(
+                "Circular dependency detected for component: {$type}{$name}\n" .
+                "Current build stack: " . implode(" -> ", array_keys($this->buildingStack)).
+                " -> {$type}{$name}"
+            );
+        }
+        $this->buildingStack[$type.$name] = 'building';
+
+        $componentInfo = $this->findFiles($type, $name, $userLayer, $exactLayerOnly);
+
+        if (!$componentInfo) {
+            throw new Exception(ucfirst($type) . " no encontrado: {$name}");
+        }
+
+        // 3. Construir el nombre de la clase final.
+        $className = "{$name}_{$componentInfo['suffix']}";
+
+        $reflection = new ReflectionClass($className);
+        $constructor = $reflection->getConstructor();
+        $injectDependencies = [];
+        if ($constructor) {
+            $dependencies = $constructor->getParameters();
+
+            foreach ($dependencies as $dependency) {
+                $dependencyClass = $dependency->getType()->getName();                
+
+                if (isset($this->cachedComponents[$dependencyClass])) {
+                    $injectDependencies[] = $this->cachedComponents[$dependencyClass];
+                }
+                else{
+                    $component = match (true) {
+                        $dependencyClass === 'App' 
+                            => $this,
+                        str_ends_with($dependencyClass, 'Service')
+                            => $this->buildService($dependencyClass),
+                        str_ends_with($dependencyClass, 'Helper') 
+                            // => $this->getHelper(substr($dependencyClass, 0, -strlen('Helper'))),
+                            => $this->buildHelper($dependencyClass),
+                        default 
+                            => $this->getModel($dependencyClass), //By convention, we assume model
+                    };
+                    $injectDependencies[] = $component;
+                    $this->cachedComponents[$dependencyClass] = $component;
+                }
+            }
+        }
+        $builtComponent = new $className(...$injectDependencies);
+        $this->cachedComponents[$name] = $builtComponent;
+        unset($this->buildingStack[$type.$name]);
+        return $builtComponent;              
     }
 
 
@@ -262,14 +343,10 @@ class App
     {
         // 1. Encontrar la información del archivo y la capa.
         $componentInfo = $this->findFiles($type, $name, $userLayer, $exactLayerOnly);
-        debug("getComponent - componentInfo",$componentInfo,false);
 
         if (!$componentInfo) {
             throw new Exception(ucfirst($type) . " no encontrado: {$name}");
         }
-
-        // 2. Cargar el archivo y toda su cadena de herencia.
-        //require_once $componentInfo['path'];
 
         // 3. Construir el nombre de la clase final.
         $className = "{$name}_{$componentInfo['suffix']}";
@@ -335,7 +412,7 @@ class App
 
             $filePath = "{$layerDir}/{$relativePath}";
             
-            $absolutePath = __DIR__ . '/../' . '/../' . $filePath; //We check if the file exists
+            $absolutePath = __DIR__ . '/../' . $filePath; //We check if the file exists
 
             if (file_exists($absolutePath)) {
                 if (is_array($loadFiles)) {
@@ -429,21 +506,6 @@ class App
         return $response;
     }
 
-
-
-    /**
-     * Create and return an instance of the view class, configured
-     * with the route to the most specific XSLT template.
-     *
-     * @param string $viewName The name of the view to render (eg: 'login').
-     * @return View
-     */
-    public function getView(string $viewName): View
-    {
-        require_once 'lib/View.php';
-        return new View($this, $viewName);
-    }
-
     /**
      * Create and return an response object, loading the file of your class only when necessary.
      *
@@ -493,54 +555,6 @@ class App
         }
 
         return $value;
-    }
-
-    public function getTranslator() : TranslatorService
-    {
-        // If we have already created the translator in this request, we return it (cache).
-        if ($this->translatorService !== null) {
-            return $this->translatorService;
-        }
-
-        $defaultLanguage = 'en'; // Our default language
-        $finalLang = $defaultLanguage; // We assume the default to start
-        $cookieName = 'user_language';
-        $cookieDuration = time() + (86400 * 365); // 1 year
-
-        // 1. Maximum priority: Is the user changing the language right now?
-        if (isset($_GET['lang'])) {
-            $finalLang = $_GET['lang'];
-            // We keep this explicit choice in the session and in the cookie.
-            $_SESSION['lang'] = $finalLang;
-            setcookie($cookieName, $finalLang, $cookieDuration, '/');
-        }
-        // 2. Second priority: Does the user have a cookie of a previous visit?
-        elseif (isset($_COOKIE[$cookieName])) {
-            $finalLang = $_COOKIE[$cookieName];
-            // We keep it in the session for this visit.
-            $_SESSION['lang'] = $finalLang;
-        }
-        // 3. Third priority: Is there a language saved in the active session?
-        elseif (isset($_SESSION['lang'])) {
-            $finalLang = $_SESSION['lang'];
-        }
-        // 4. Fourth priority: Can we detect the browser's language?
-        elseif (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            // This gives us something like "es-ES,es;q=0.9,en;q=0.8".
-            // Nos quedamos con los dos primeros caracteres.
-            $finalLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-            // We create the cookie for the first time for this visitor.
-            setcookie($cookieName, $finalLang, $cookieDuration, '/');
-            $_SESSION['lang'] = $finalLang;
-        }
-        // If none of the above is fulfilled, we'll use the $defaultLanguage.
-
-        $this->setContext('language_code',$finalLang);
-        
-        // We create the translation service with the determined final language.
-        $this->translatorService = $this->getService('Translator', $finalLang);
-
-        return $this->translatorService;
     }
 
     /**

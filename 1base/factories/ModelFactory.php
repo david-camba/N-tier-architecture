@@ -1,14 +1,14 @@
 <?php
-require_once '1base/lib/Collection.php'; //define collection objects that will be return by the models
-
 class ModelFactory_Base
 {
-    protected $app;
-    protected $connections = []; // Caché de conexiones, ahora vive aquí.
+    protected App $app;
+    protected array $connections = []; // Caché de conexiones, ahora vive aquí.
 
     public function __construct(App $app)
     {
-        $this->app = $app;
+        $this->app = $app;        
+        require_once 'lib/components/ORM.php'; //define the models father
+        require_once 'lib/support/Collection.php'; //define collection objects that will be return by the models
     }
 
     public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null)

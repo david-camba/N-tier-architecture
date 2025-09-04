@@ -8,8 +8,6 @@ class ModelFactory_3Audi extends ModelFactory_Base
             default => null,
         };
 
-        debug("sqlbelongs array_merge", array_merge([$this->app, $pdo], $constructorArgs),false);
-
         if ($pdo) {
             return $this->app->getComponent('model', $modelName, [$this->app, $pdo, $constructorArgs], $userLevel);
         }

@@ -1,8 +1,8 @@
 <?php
 class View
 {
-    private $app;
-    private $viewName;     // La ruta a renderizar
+    private App $app;
+    private string $viewName;     // La ruta a renderizar
     private $data = [];    // Los datos que le pasará el controlador
     private $compiledCache = []; // Save compiled views
     
@@ -10,10 +10,10 @@ class View
     /**
      * El constructor recibe la ruta a la plantilla que debe usar.
      */
-    public function __construct(App $app, $viewName)
+    public function __construct(string $viewName)
     {
         $this->viewName = $viewName;
-        $this->app = $app;
+        $this->app = App::getInstance();
     }
 
     /**
@@ -102,7 +102,7 @@ class View
 
         $userToken = $user ? $user->token : "noLog";
 
-        $basePath = realpath(__DIR__ . '/../../cache'); 
+        $basePath = realpath(__DIR__ . '/../cache'); 
         $userFolder = $basePath . '/' . $userToken; 
         $viewFolder = $userFolder . '/views' . '/' . $this->viewName; 
         $finalXslFile = $viewFolder . '/' . $this->viewName . '.xsl';
@@ -130,8 +130,6 @@ class View
 
         // 2. Compilar vistas heredadas (las deja en compiledCache)
         $this->compileView($viewFileInfo);
-
-        debug("this->compiledCache",$this->compiledCache, false);
 
         // 3. Extraer array de vistas temporales compiladas (nueva ruta => contenido)
         $tempXsl = $this->compileAndStoreXslFiles($basePath, $userToken, $this->viewName);
@@ -327,7 +325,6 @@ class View
         $this->buildXmlNodes($xml, $root, $this->data);
         
         $xml->formatOutput = true; //formatea el output en distintas lineas
-        debug("xml.root", $xml->saveXML($root), false);
         $xml->formatOutput = false;
 
         return $xml;

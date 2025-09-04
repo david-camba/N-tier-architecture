@@ -1,10 +1,21 @@
 <?php
-require_once '1base/controllers/Controller.php';
 class DashboardController_Base extends Controller
-{
-    protected $app;
+{    
     
     public $userLevelFallback = true;
+
+    //protected ContextService $context; //if we want pure DI, we could use ContextService & ConfigService. Now, we'll keep using the "Controller" method getContext that uses the App singleton
+
+    protected TranslatorService $translator;
+    protected MenuHelper $menuHelper;
+    protected User $userModel;
+
+    public function __construct(MenuHelper $menuHelper, TranslatorService $translator, User $userModel)
+    {
+        $this->translator = $translator;
+        $this->menuHelper = $menuHelper;
+        $this->userModel = $userModel;
+    }
 
     public function showDashboard()
     {
@@ -22,7 +33,7 @@ class DashboardController_Base extends Controller
 
         $view->add('scripts','/1base/js/dashboard_base.js');
 
-        $menuItems = $this->getHelper("Menu")->prepareMenuData($view,'dashboard_title');
+        $this->menuHelper->prepareMenuData($view,'dashboard_title');
         
         // 3. Devolvemos la respuesta de la vista.
         return $this->view($view);
@@ -33,9 +44,7 @@ class DashboardController_Base extends Controller
         
         $view->set('dashboard_welcome_message', $this->translate('dashboard_welcome_message_manager'));
 
-        $response = $this->view($view);
-        return $response;
-        //return $this->view($response);
+        return $this->view($view);
     }
     
     public function showDashboard_Seller(){
@@ -52,7 +61,7 @@ class DashboardController_Base extends Controller
         // Pedimos a la fábrica un buscador de Usuarios.
 
         // Buscamos a todos los usuarios que pertenecen al mismo concesionario que el manager.
-        $teamMembers = $this->getModel('User')->findAll('id_dealer', $manager->id_dealer)
+        $teamMembers = $this->userModel->findAll('id_dealer', $manager->id_dealer)
             ->filter(function ($user) use ($manager) {
                 // filter() mantiene un elemento si el callback devuelve 'true'.
                 // Queremos mantener a todos los usuarios CUYO ID SEA DIFERENTE

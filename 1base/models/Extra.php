@@ -1,17 +1,19 @@
 <?php
-require_once '1base/models/ORM.php';
+
 
 /**
  * Representa la tabla 'extras' del catálogo de productos.
  */
-class Extra_Base extends ORM
+interface Extra extends InterfaceORM {}; 
+
+class Extra_Base extends ORM implements Extra
 {
     /** @var string El nombre de la tabla. */
-    protected $tableName = 'extras';
+    protected string $tableName = 'extras';
     
     /** @var string El nombre de la clave primaria. */
-    protected $primaryKey = 'id_extra';
+    protected string $primaryKey = 'id_extra';
 
     /** @var array Lista blanca de columnas para búsquedas. */
-    protected $fillable_columns = ['id_extra','name']; // Permitimos buscar extras por nombre
+    protected array $fillable_columns = ['id_extra','name']; // Permitimos buscar extras por nombre
 }

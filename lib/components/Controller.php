@@ -3,28 +3,12 @@
  * Clase base abstracta de la que deben heredar todos los controladores.
  * Proporciona funcionalidades y propiedades comunes.
  */
-abstract class Controller
-{
-    /** @var App */
-    protected $app;
-    protected $translator;
-    
+abstract class Controller extends Component
+{    
     /**
      * @var bool Activa o desactiva la herencia de roles jerárquica para este controlador.
      */
     protected $userLevelFallback = false;
-
-    /**
-     * El constructor recibe la instancia de la App y la almacena.
-     * Esta es la ÚNICA dependencia fundamental de cualquier controlador.
-     *
-     * @param App $app La instancia de la aplicación.
-     */
-    public function __construct(App $app)
-    {
-        $this->app = $app;
-        $this->translator = $this->app->getTranslator();
-    }
 
     /**
      * Getter para la propiedad roleFallback.
@@ -38,17 +22,18 @@ abstract class Controller
     // --- MÉTODOS DE AYUDA ---
 
     /**
-     * Atajo para obtener una View y asignarle datos iniciales.
-     * Es la forma recomendada de empezar a construir una respuesta de vista.
+     * Create and return an instance of the view class, configured
+     * with the route to the most specific XSLT template.
      *
-     * @param string $viewName El nombre de la vista (ej: 'login').
-     * @param array $data (Opcional) Un array de datos para asignar a la vista.
+     * @param string $viewName The name of the view to render (eg: 'login').
+     * @param array $data (Optional) A data array to assign.
      * @return View
      */
-    protected function getView($viewName, array $data = [])
+    protected function getView(string $viewName, array $data = [])
     {
         // 1. Obtenemos el objeto View de la App.
-        $view = $this->app->getView($viewName);
+        require_once 'lib/View.php';
+        $view = new View($viewName);
 
         $this->injectDefaultAssets($view);
 
@@ -67,8 +52,8 @@ abstract class Controller
      */
     private function injectDefaultAssets(View $view)
     {
-        $layers = $this->app->getConfig('layers');
-        $userLayer = $this->app->getUserLayer();
+        $layers = $this->getConfig('layers');
+        $userLayer = App::getInstance()->getUserLayer();
         
         $cssFiles = [];
         $jsFiles = [];
@@ -111,9 +96,11 @@ abstract class Controller
     /**
      * Atajo para crear una ViewResponse
      */
-    protected function view($view, $userLayer=null)
-    {
-        return $this->app->getResponse('view', $view);
+    protected function view($view)
+    {        
+        require_once 'lib/response/ViewResponse.php'; 
+
+        return new ViewResponse($view);
     }
     
     /**
@@ -121,7 +108,10 @@ abstract class Controller
      */
     protected function json(array $data = [], $success = true, $statusCode = 200)
     {
-        return $this->app->getResponse('json', [
+        require_once 'lib/response/JsonResponse.php';  // we load the class file
+
+        return new JsonResponse(
+        [
             'success' => $success,
             'data' => $data
         ], $statusCode);
@@ -132,16 +122,19 @@ abstract class Controller
      */
     protected function jsonError($message = '', $statusCode = 400)
     {
-        return $this->app->getResponse('json', [
-            'success'=> false,
-            'message'=> $message
+        require_once 'lib/response/JsonResponse.php';  // we load the class file
+
+        return new JsonResponse(
+        [
+            'success' => false,
+            'message'=> $message,
         ], $statusCode);
     }
     
     /**
      * Enriquecer una respuesta JSON antes de enviarla
      */
-    function enrichJsonResponse($response, array $extraFields = []): JsonResponse
+    function enrichJsonResponse(JsonResponse $response, array $extraFields = []): JsonResponse
     {
         // Obtener contenido de la respuesta original
         $data = $response->getContent();
@@ -154,55 +147,6 @@ abstract class Controller
     }
 
     /**
-     * Atajo para devolver un RedirectResponse
-     */
-    protected function redirect(string $url, string|int $statusCode = 200)
-    {
-        $this->app->redirect($url, $statusCode);
-        exit();
-    }
-
-    /**
-     * Atajo para obtener una cadena de texto traducida.
-     */
-    protected function translate($key, array $replacements = [])
-    {
-        return $this->translator->get($key, $replacements);
-    }
-
-
-    /* METODOS FACHADA, ENCAPSULANDO LA NECESIDAD DE LLAMAR A APP */
-    protected function getModel($modelName, array $constructorArgs=[], $userLayer=null, $cache=false)
-    {
-        return $this->app->getModel($modelName, $constructorArgs, $userLayer, $cache);
-    }
-    
-    protected function getService($serviceName, ...$args)
-    {
-        return $this->app->getService($serviceName, ...$args);
-    }
-
-    protected function getHelper($serviceName, ...$args)
-    {
-        return $this->app->getHelper($serviceName, ...$args);
-    }
-
-    protected function getConfig($key, $default = null)
-    {
-        return $this->app->getConfig($key, $default);
-    }
-    
-    protected function getContext($key, $default = null)
-    {
-        return $this->app->getContext($key, $default);
-    }
-
-    public function setContext($key, $value)
-    {
-        return $this->app->setContext($key, $value);
-    }
-
-    /**
      * Ejecuta el mismo método en la clase padre y devuelve su respuesta.
      * Detecta automáticamente el nombre del método que lo llamó y ajusta los argumentos según el padre.
      * 
@@ -212,7 +156,7 @@ abstract class Controller
      */
     protected function parentResponse(?string $type = null) : mixed
     {
-        $parentResponse = $this->app->callParent($this);
+        $parentResponse = $this->callParent($this);
         // 4. Validar tipo si se especifica
         if ($type !== null) {
             $expectedClass = ucfirst($type) . 'Response';

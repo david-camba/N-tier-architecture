@@ -1,7 +1,14 @@
 <?php
-require_once "lib/Collection.php";
+/**
+ * @method mixed findAll()
+ * @method mixed find()
+ * @method mixed save()
+ * @method mixed all()
+ * @method mixed delete()
+ */
+interface InterfaceORM{}
 
-abstract class ORM
+abstract class ORM implements InterfaceORM
 {
     /**
  * ORM
@@ -10,22 +17,22 @@ abstract class ORM
  * Todos los modelos de la aplicación heredarán de esta clase.
  * Proporciona métodos CRUD para interactuar con la base de datos.
  */
-    protected $app;
+    protected App $app;
 
     protected $relations = [];
     
     
     /** @var PDO La conexión a la base de datos, inyectada por la ModelFactory. */
-    protected $pdo;
+    protected PDO $pdo;
 
     /** @var string El nombre de la tabla en la base de datos. Los hijos deben definirlo. */
-    protected $tableName;
+    protected string $tableName;
     
     /** @var string El nombre de la clave primaria. Los hijos pueden sobreescribirlo. */
-    protected $primaryKey = 'id';
+    protected string $primaryKey = 'id';
 
     /** @var array Los datos del registro actual (la fila de la tabla). */
-    protected $data = [];
+    protected array $data = [];
 
     // OPTIONAL - we can force the developers to define the table and key for each model
     //abstract protected function getTableName(): string;
@@ -36,9 +43,9 @@ abstract class ORM
      * Los modelos hijos DEBERÍAN sobreescribir esta lista para añadir sus columnas.
      * @var array
      */
-    protected $fillable_columns = [];
+    protected array $fillable_columns = [];
 
-    protected $hidden = [];
+    protected array $hidden = [];
 
     /**
      * El constructor recibe la conexión PDO y la almacena.
@@ -425,12 +432,9 @@ abstract class ORM
         $allData = $stmt->fetchAll(PDO::FETCH_ASSOC);       
 
         $items = [];
-        debug("sqlbelongs data", $allData[0], false);
         foreach ($allData as $data) {            
             $items[] = $this->app->getModel($relatedModel, $data);
         }
-
-        debug("sqlbelongs items", get_class($items[0]), false);
 
         return new Collection($items);
     }

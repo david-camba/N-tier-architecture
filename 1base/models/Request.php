@@ -1,10 +1,12 @@
 <?php
-require_once '1base/models/ORM.php';
 
-class Request_Base extends ORM
+
+interface Request extends InterfaceORM {}; 
+
+class Request_Base extends ORM implements Request
 {
-    protected $tableName = 'requests';
-    protected $primaryKey = 'id_request';
+    protected string $tableName = 'requests';
+    protected string $primaryKey = 'id_request';
 
 /**
      * Incrementa el contador de intentos de login fallidos para este usuario.

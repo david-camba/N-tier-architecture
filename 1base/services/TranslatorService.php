@@ -1,5 +1,9 @@
 <?php
-require_once '1base/services/Service.php';
+
+/**
+ * @method mixed get(string $key)
+ */
+interface TranslatorService{}
 
 /**
  * Translator_Base
@@ -8,11 +12,9 @@ require_once '1base/services/Service.php';
  * Carga un archivo de idioma y proporciona un método para obtener
  * las cadenas de texto traducidas.
  */
-interface TranslatorService{}
+
 class TranslatorService_Base extends Service implements TranslatorService
 {
-
-    protected $app;
 
     /**
      * @var string El código del idioma actual (ej: 'es', 'en').
@@ -24,16 +26,56 @@ class TranslatorService_Base extends Service implements TranslatorService
      */
     protected $translations = [];
 
+    protected App $app;
+
     /**
      * El constructor inicializa el servicio para un idioma específico.
      *
      * @param string $languageCode El código del idioma a cargar.
      */
-    public function __construct($app, $languageCode)
+    public function __construct(App $app)
     {
         $this->app = $app;
-        $this->languageCode = $languageCode;        
+        $this->languageCode = $this->getLanguageCode();   
+        $this->app->setContext('language_code', $this->languageCode);     
         $this->loadTranslations();
+    }
+
+
+    public function getLanguageCode(string $defaultLanguage = 'en') : string
+    {
+        $finalLang = $defaultLanguage; // We assume the default to start
+        $cookieName = 'user_language';
+        $cookieDuration = time() + (86400 * 365); // 1 year
+
+        // 1. Maximum priority: Is the user changing the language right now?
+        if (isset($_GET['lang'])) {
+            $finalLang = $_GET['lang'];
+            // We keep this explicit choice in the session and in the cookie.
+            $_SESSION['lang'] = $finalLang;
+            setcookie($cookieName, $finalLang, $cookieDuration, '/');
+        }
+        // 2. Second priority: Does the user have a cookie of a previous visit?
+        elseif (isset($_COOKIE[$cookieName])) {
+            $finalLang = $_COOKIE[$cookieName];
+            // We keep it in the session for this visit.
+            $_SESSION['lang'] = $finalLang;
+        }
+        // 3. Third priority: Is there a language saved in the active session?
+        elseif (isset($_SESSION['lang'])) {
+            $finalLang = $_SESSION['lang'];
+        }
+        // 4. Fourth priority: Can we detect the browser's language?
+        elseif (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+            // This gives us something like "es-ES,es;q=0.9,en;q=0.8".
+            // Nos quedamos con los dos primeros caracteres.
+            $finalLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+            // We create the cookie for the first time for this visitor.
+            setcookie($cookieName, $finalLang, $cookieDuration, '/');
+            $_SESSION['lang'] = $finalLang;
+        }
+
+        return $finalLang;
     }
 
     /**
@@ -94,7 +136,7 @@ class TranslatorService_Base extends Service implements TranslatorService
      * @param array $replacements Un array de valores para sustituir en la cadena (para %s, %d, etc.).
      * @return string La cadena traducida o la propia clave si no se encuentra la traducción.
      */
-    public function get($key, array $replacements = [])
+    public function get($key, array $replacements = []) : string
     {
         // Buscamos la clave en las traducciones cargadas.
         // Si no existe, devolvemos la clave misma como fallback, lo cual es útil para depurar.

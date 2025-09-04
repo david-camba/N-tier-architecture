@@ -1,7 +1,19 @@
 <?php
-require_once '1base/helpers/Helper.php';
-class MenuHelper_Base extends Helper
+
+
+/**
+ * @method mixed prepareMenuData()
+ */
+interface MenuHelper{} 
+
+class MenuHelper_Base extends Helper implements MenuHelper
 {
+
+    public function __construct(TranslatorService $translator)
+    {
+        $this->translator = $translator;
+    }
+
     /**
      * Prepara una instancia de View con todos los datos comunes
      * necesarios para renderizar el layout principal de la aplicación.
@@ -11,8 +23,7 @@ class MenuHelper_Base extends Helper
      */
     public function prepareMenuData(View $view, $pageTitleKey)
     {
-        $translator = $this->app->getTranslator();
-        $user = $this->app->getContext('user');
+        $user = $this->getContext('user');
         
         // --- ESTABLECE TODOS LOS DATOS DEL LAYOUT ---
         $view->set('pageTitle', $this->translate($pageTitleKey));
@@ -44,24 +55,28 @@ class MenuHelper_Base extends Helper
      */
     protected function getMenuItems()
     {
-        $translator = $this->app->getTranslator();
-        $userLevel = $this->app->getUserLevel();
+        $userLevel = $this->getUserLevel();
 
         // --- Menú Base (para todos los usuarios logueados) ---
         $menuItems = [
-            ['url' => '/app/config', 'text' => $translator->get('menu_configurator')],
-            ['url' => '/app/clients.php', 'text' => $translator->get('menu_clients_legacy')],
+            ['url' => '/app/config', 'text' => $this->translate('menu_configurator')],
+            ['url' => '/app/clients.php', 'text' => $this->translate('menu_clients_legacy')],
         ];        
         
         // --- Lógica de Permisos Horizontales (Roles) ---
         // Añadimos ítems adicionales si el usuario es un Manager o superior.
         if ($userLevel >= 2) { // Nivel de Manager
-            $menuItems[] = ['url' => '/api/employees-report', 'text' => $translator->get('menu_report')];
+            $menuItems[] = ['url' => '/api/employees-report', 'text' => $this->translate('menu_report')];
         }
 
         // Podríamos añadir más 'if' para otros niveles
         // if ($userLevel >= 3) { ... }
 
         return $menuItems;
+    }
+
+    protected function getUserLevel()
+    {
+        return App::getInstance()->getUserLevel();
     }
 }

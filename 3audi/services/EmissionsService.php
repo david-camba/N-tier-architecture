@@ -1,11 +1,20 @@
 <?php
-require_once '1base/services/Service.php';
 
-class EmissionsService_Base extends Service
+interface EmissionsService{}
+class EmissionsService_3Audi extends Service implements EmissionsService
 {
+    protected CarModel $carModel;
+
+    public function __construct(CarModel $carModel)
+    {
+        $this->carModel = $carModel;
+    }
+
+
     public function getEmissionsData()
     {
-        $allModels = $this->getModel('CarModel')->all();
+        //$allModels = $this->getModel('CarModel')->all();
+        $allModels = $this->carModel->all();
 
         // 2. PREPARAR LOS DATOS PARA LA RESPUESTA
         // Mapeamos la colección de objetos a un array simple para la API.

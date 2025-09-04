@@ -5,7 +5,7 @@ class Router
 
     public function __construct()
     {
-        $this->routes = require __DIR__ . '/../../routes.php';
+        $this->routes = require __DIR__ . '/../routes.php';
     }
 
     /**
@@ -49,7 +49,7 @@ class Router
             // ...significa que el navegador pidió un asset que no se encontró físicamente.
             // En lugar de procesarlo como una ruta de la app, devolvemos un 404 y terminamos.            
             http_response_code(404);
-            debug("Error 404: Asset no encontrado", $path, false);
+            debug("Error 404: Asset not found", $path, false);
             exit(); 
         }
 
@@ -72,7 +72,6 @@ class Router
 
                 if (preg_match($regex, $path, $matches)) {
                     // Eliminamos la coincidencia completa para quedarnos solo con los parámetros.
-                    debug("TRABAJANDO routeInfo",$routeInfo,false);
                     array_shift($matches);
                     $apiRoute = $routeInfo['api_route'] ?? false;
                     // Devolvemos la información de la ruta MVC, añadiendo los parámetros y el tipo.

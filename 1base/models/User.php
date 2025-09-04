@@ -1,16 +1,14 @@
 <?php
-require_once '1base/models/ORM.php';
-
-interface User {}; 
+interface User extends InterfaceORM {}; 
 
 class User_Base extends ORM implements User
 {
-    protected $tableName = 'users';
-    protected $primaryKey = 'id_user';
+    protected string $tableName = 'users';
+    protected string $primaryKey = 'id_user';
 
-    protected $hidden = ['user_layer', 'user_level'];
+    protected array $hidden = ['user_layer', 'user_level'];
 
-    protected $fillable_columns = [
+    protected array $fillable_columns = [
         'username',
         'email',
         'id_dealer',

@@ -1,7 +1,4 @@
 <?php
-require_once '1base/models/ORM.php';
-
-
 /**
  * UserSession_Base
  *
@@ -9,11 +6,13 @@ require_once '1base/models/ORM.php';
  * las sesiones persistentes de los usuarios.
  */
 
-class UserSession_Base extends ORM
+interface UserSession extends InterfaceORM {}; 
+
+class UserSession_Base extends ORM implements UserSession
 {
-    protected $tableName = 'users_sess';
-    protected $primaryKey = 'id_session';
-    protected $fillable_columns = ['id_user', 'token'];
+    protected string $tableName = 'users_sess';
+    protected string $primaryKey = 'id_session';
+    protected array $fillable_columns = ['id_user', 'token'];
 
     /**
      * Crea un nuevo registro de sesión para un usuario y devuelve el token.

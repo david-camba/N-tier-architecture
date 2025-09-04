@@ -1,15 +1,25 @@
 <?php
-require_once '1base/services/Service.php';
+/**
+ * @method mixed handleLogout()
+ * @method mixed checkLogin()
+ */
+interface AuthService{}
 
-class AuthService_Base extends Service
+class AuthService_Base extends Service implements AuthService
 {
+    protected App $app;
 
     public function __construct(App $app)
     {
-        $this->app = $app;
-
-        //NO: $this->translator = $this->app->getTranslator(); 
-        // We overwritten the global "Service" builder to remove the translator so that it is not initialized before setting the layers
+        $this->app = $app; 
+        /** We'll use App:
+         *  1- To set the Context, UserLayer and UserLevel 
+         *  2- Handle redirections if needed
+         *  3- Get the models: Request, User, UsserSession without caching the factory when it's not needed
+         */        
+        
+        //NEVER build TranslatorService here.
+        //If we build it here, it will mess with the translations because the layers are not set yet
     }
 
     /** 
@@ -40,7 +50,7 @@ class AuthService_Base extends Service
         /** @var User_Base|null $authenticatedUser */
         
         // 1. We keep the user (or null) in the context of the app.
-        $this->setContext('user', $authenticatedUser);
+        $this->app->setContext('user', $authenticatedUser);
 
         // 2. Apply the access rules.
         if ($authenticatedUser) {
@@ -90,15 +100,15 @@ class AuthService_Base extends Service
         // 1. Obtain the token from the cookie of the browser.
         $token = $_COOKIE['session_token'] ?? null;
         if (!$token) {
-            $this->getModel('Request',[],1,false)->log("NO SESSION", null);            
+            $this->app->getModel('Request',[],1,false)->log("NO SESSION", null);            
             return null; // Si no hay cookie, no hay usuario.
         }
         // 2. Obtain a "search engine" for the User Session model.
-        $session = $this->getModel('UserSession',[],1,false)->find($token, 'token');
+        $session = $this->app->getModel('UserSession',[],1,false)->find($token, 'token');
 
         // 4. Validate the session found.
         if (!$session) {
-            $this->getModel('Request',[],1,false)->log("TOKEN INVALID", $session);
+            $this->app->getModel('Request',[],1,false)->log("TOKEN INVALID", $session);
             // Token is not valid or is not in the BBDD. 
             // (Here we could erase the user's invalid cookie).
             setcookie('session_token', '', ['expires' => time() - 3600, 'path' => '/', 'httponly' => true,'samesite' => 'Lax' //'domain' => 'dominio.com', //'secure' => true,
@@ -115,7 +125,7 @@ class AuthService_Base extends Service
             setcookie('session_token', '', ['expires' => time() - 3600, 'path' => '/', 'httponly' => true,'samesite' => 'Lax' //'domain' => '.tudominio.com', //'secure' => true,
             ]); 
             unset($_COOKIE['session_token']); // We delete cookie
-            $this->getModel('Request',[],1,false)->log("EXPIRED SESSION", $session);
+            $this->app->getModel('Request',[],1,false)->log("EXPIRED SESSION", $session);
             return null;
         }
 
@@ -123,16 +133,16 @@ class AuthService_Base extends Service
         // This prevents the theft of the cookie by session.
         if ($session->ip !== $_SERVER['REMOTE_ADDR'] || $session->user_agent !== $_SERVER['HTTP_USER_AGENT']) {
             // Safety alert! Someone could have stolen the cookie.
-            $this->getModel('Request',[],1,false)->log("SESSION_HIJACK_ATTEMPT", $session);
+            $this->app->getModel('Request',[],1,false)->log("SESSION_HIJACK_ATTEMPT", $session);
             $session->delete(); // Invalidate this session in the BBDD
             return null;
         }
 
         // 7. Success! The session is valid. 
         // We return the crucial information for the rest of the application.
-        $this->getModel('Request',[],1,false)->log("SUCCESS", $session); // We keep the request
+        $this->app->getModel('Request',[],1,false)->log("SUCCESS", $session); // We keep the request
 
-        $user = $this->getModel('User',[],1,false)->find($session->id_user);
+        $user = $this->app->getModel('User',[],1,false)->find($session->id_user);
         $user->token = $token; // We add the token
         // We eliminate sensitive data      
         unset($user->password);
@@ -182,7 +192,7 @@ class AuthService_Base extends Service
 
         // 2. Usar el modelo User para encontrar al usuario por su username.
         /** @var User_Base|null $user */
-        $user =  $this->getModel("User")->find($username, 'username');
+        $user =  $this->app->getModel("User")->find($username, 'username');
 
         // Escenario de Fracaso: Usuario no encontrado
         if (!$user) {
@@ -213,7 +223,7 @@ class AuthService_Base extends Service
             $user->resetLoginTries();     
             
             /** @var UserSession_Base $userSession */
-            $userSession = $this->getModel('UserSession');
+            $userSession = $this->app->getModel('UserSession');
             $token = $userSession->createForUser($user->id_user, $user->id_dealer);
 
             // 5. Enviar el token al navegador en una cookie segura.
@@ -245,6 +255,32 @@ class AuthService_Base extends Service
         }        
     }
 
+    public function handleLogout()
+    {
+        // 1. Obtener el token de la cookie.
+        $token = $_COOKIE['session_token'] ?? null;
+
+        if ($token) {
+            // 2. Usar el modelo para encontrar la sesión por el token.
+            $session = $this->app->getModel('UserSession')->find($token, 'token');
+
+            if ($session) {
+                // 3. Si la encontramos, la eliminamos de la base de datos.
+                $session->delete();
+            }
+
+            // 4. "Matamos" la cookie en el navegador, diciéndole que expire en el pasado.
+            setcookie('session_token', '', ['expires' => time() - 3600, 'path' => '/']);
+        }
+        
+        // 5. Limpiamos completamente la sesión de PHP.
+        session_unset();
+        session_destroy();
+
+        // 6. Devolvemos una respuesta de redirección a la página de login.
+        return $this->redirect('/login');
+    }
+
     protected function setUserLayer($userLayer): void
     { 
         $this->app->setUserLayer($userLayer);
@@ -255,8 +291,14 @@ class AuthService_Base extends Service
         $this->app->setUserLevel($userLevel);
     }
 
+    public function setContext($key, $value)
+    {
+        return $this->app->setContext($key, $value);
+    }
+
     protected function redirect($url, $statusCode=200) : void
     {
         $this->app->redirect($url, $statusCode);
+        exit();
     }
 }

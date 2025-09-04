@@ -1,12 +1,15 @@
 <?php
-require_once '1base/controllers/Controller.php';
-
 class ErrorController_Base extends Controller
 {
+    public function __construct(TranslatorService $translator)
+    {
+        $this->translator = $translator;
+    }
+    
     public function showNotFound($url)
     {
-        $errorMessage = $this->translate('not_found_message', [$url]);
-        $goBack = $this->translate('go_back_main');
+        $errorMessage = (string) $this->translate('not_found_message', [$url]);
+        $goBack = (string) $this->translate('go_back_main');
 
         echo '
         <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center;">

@@ -34,8 +34,8 @@ function get_db_connection_dealer()
     // --- Lógica para determinar a qué BBDD conectar ---
     // Los scripts legacy dependen de que el framework moderno haya establecido
     // estas variables de sesión durante el login.
-    $brand = $_SESSION['brand'] ?? 'audi'; // Usamos 'audi' como fallback para pruebas
-    $dealerId = $_SESSION['user_dealer_id'] ?? 11; // Usamos 11 como fallback
+    $brand =  App::getInstance()->getConfig('general.brandName');
+    $dealerId = App::getInstance()->getContext('user')->id_dealer; // Usamos 11 como fallback
 
     if (!$brand || !$dealerId) {
         // En un caso real, manejaríamos este error (ej. mostrando un mensaje).
@@ -45,7 +45,7 @@ function get_db_connection_dealer()
 
     $dbName = "{$brand}_{$dealerId}.sqlite";
     // La ruta se construye relativa a la raíz del proyecto.
-    $dbPath = dirname(__DIR__, 3) . "/databases/{$dbName}";
+    $dbPath = dirname(__DIR__, 2) . "/databases/{$dbName}";
 
     try {
         // Creamos la conexión PDO.
@@ -91,9 +91,9 @@ function get_db_connection_master()
     // --- Lógica para determinar a qué BBDD conectar ---
     // Los scripts legacy dependen de que el framework moderno haya establecido
     // estas variables de sesión durante el login.
-    $brand = $_SESSION['brand'] ?? 'audi'; // Usamos 'audi' como fallback para pruebas
+    $brand =  App::getInstance()->getConfig('general.brandName');
 
-    if (!$brand || !$dealerId) {
+    if (!$brand) {
         // En un caso real, manejaríamos este error (ej. mostrando un mensaje).
         error_log("Faltan datos de sesión 'brand' o 'user_dealer_id' para la conexión legacy.");
         return null;

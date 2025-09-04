@@ -14,7 +14,7 @@ require_once __DIR__ . '/utils/database.php';
 // Lógica de traducción, etc. (como la teníamos antes)
 $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'en';
 // ...here we can use the new "TranslatorService" because "App" is accesible in legacy script as "$this"
-$translator = $this->getTranslator();
+$translator = $this->buildComponent('service', "TranslatorService");
 
 // 2. Obtener la conexión.
 $pdo = get_db_connection_dealer();
@@ -45,6 +45,9 @@ if (isset($_GET['conf_session'])) {
     $confSession = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // 3. Realizar las validaciones.
+
+    $confService = $this->buildComponent('service', "ConfiguratorService");
+
     if (!$confSession) {        
         $errorMessageAssign = $translator->get('clients_error_no_session');
     } elseif ($confSession['id_user'] != $userId) {
@@ -53,12 +56,12 @@ if (isset($_GET['conf_session'])) {
         $errorMessageAssign = $translator->get('clients_error_invalid_configuration');
     } elseif ($confSession['assigned'] == 1) {
         $errorMessageAssign = $translator->get('clients_warning_already_assigned');
-        $summaryData = $this->getService('Configurator')->getSummaryDataLegacy($confSession);
-        $totalPrice = $this->getService('Configurator')->calculateTotalLegacy($confSession);
+        $summaryData = $confService->getSummaryDataLegacy($confSession);
+        $totalPrice = $confService->calculateTotalLegacy($confSession);
     }
     else{
-        $summaryData = $this->getService('Configurator')->getSummaryDataLegacy($confSession);
-        $totalPrice = $this->getService('Configurator')->calculateTotalLegacy($confSession);
+        $summaryData = $confService->getSummaryDataLegacy($confSession);
+        $totalPrice = $confService->calculateTotalLegacy($confSession);
     }
 
     // --- ¡NUEVO! GESTIONAR EL FORMULARIO DE ASIGNACIÓN (cuando se envía por POST) ---

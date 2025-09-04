@@ -1,6 +1,9 @@
 <?php
 
-require_once '1base/models/ORM.php';
+
+
+
+interface ConfSession extends InterfaceORM {}; 
 
 /**
  * ConfSession_Base
@@ -8,16 +11,16 @@ require_once '1base/models/ORM.php';
  * Modelo para interactuar con la tabla 'conf_sessions', que almacena
  * las configuraciones de vehículos en progreso o guardadas como plantillas.
  */
-class ConfSession_Base extends ORM
+class ConfSession_Base extends ORM implements ConfSession
 {
     /** @var string El nombre de la tabla en la base de datos. */
-    protected $tableName = 'conf_sessions';
+    protected string $tableName = 'conf_sessions';
     
     /** @var string El nombre de la clave primaria. */
-    protected $primaryKey = 'id_conf_session';
+    protected string $primaryKey = 'id_conf_session';
 
     /** @var array Lista blanca de columnas para búsquedas seguras. */
-    protected $fillable_columns = [
+    protected array $fillable_columns = [
         'id_conf_session',
         'id_user',
         'assigned',

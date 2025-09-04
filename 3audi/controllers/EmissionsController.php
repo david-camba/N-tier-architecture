@@ -1,16 +1,24 @@
 <?php
-require_once '1base/controllers/Controller.php';
-
 class EmissionsController_3Audi extends Controller
 {
     public $userLevelFallback = true;
+
+    protected EmissionsService $emissionsService;
+
+    public function __construct(TranslatorService $translator, EmissionsService $emissionsService)
+    {
+        $this->translator = $translator;
+        $this->emissionsService = $emissionsService;
+    }
 
     public function showReportEmissions()
     {
         // 1. OBTENER LOS DATOS DESDE EL MODELO
         // Usamos el modelo 'Model' (que apunta a la tabla de modelos de coches).
-        // El truco '1'='1' es una forma simple de decir "dame todo".
-        $reportData = $this->getService('Emissions')->getEmissionsData();
+        //$reportData = $this->getService('Emissions')->getEmissionsData();
+
+        $reportData = $this->emissionsService->getEmissionsData();
+
         // 3. DEVOLVER LA RESPUESTA JSON
         return $this->json(
             [

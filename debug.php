@@ -50,8 +50,6 @@ if(!defined(DEBUG_ON) || !DEBUG_ON ||!defined(DEBUG_PANEL) || !DEBUG_PANEL){
      */
     //function renderDebugPanel()
 
-    debug("layerLevelFixed",$layerLevelFixed,false);
-
     $GLOBALS['renderDebugPanel'] = 
     function() use ($config, $layerLevelFixed){
         // Si el modo debug no está activado en la configuración, no hacemos nada.

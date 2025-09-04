@@ -1,22 +1,24 @@
 <?php
 // EN: 3audi/models/Model.php
 
-require_once '1base/models/ORM.php';
+
 
 /**
  * Representa la tabla 'models' del catálogo de productos.
  * Este modelo es específico de la capa Audi.
  */
-class CarModel_Base extends ORM
+interface CarModel extends InterfaceORM {}; 
+
+class CarModel_Base extends ORM implements CarModel
 {
     /** @var string El nombre de la tabla en la base de datos. */
-    protected $tableName = 'models';
+    protected string $tableName = 'models';
     
     /** @var string El nombre de la clave primaria. */
-    protected $primaryKey = 'id_model';
+    protected string $primaryKey = 'id_model';
 
     /** @var array Lista blanca de columnas para búsquedas. */
-    protected $fillable_columns = ['id_model','name']; // Permitimos buscar modelos por nombre
+    protected array $fillable_columns = ['id_model','name']; // Permitimos buscar modelos por nombre
 
     protected function colors(){
         return $this->hasMany("Color");

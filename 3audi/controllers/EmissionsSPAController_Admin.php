@@ -1,8 +1,11 @@
 <?php
-require_once '1base/controllers/Controller.php';
-
 class EmissionsSPAController_Admin_3Audi extends Controller
 {
+    public function __construct(TranslatorService $translator)
+    {
+        $this->translator = $translator;
+    }
+
     public function show()
     {
         echo '

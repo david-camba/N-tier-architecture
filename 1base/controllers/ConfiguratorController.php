@@ -1,7 +1,18 @@
 <?php
-require_once '1base/controllers/Controller.php';
 class ConfiguratorController_Base extends Controller
 {
+    protected TranslatorService $translator;
+    protected MenuHelper $menuHelper;
+    protected ConfSession $confSessionModel;
+    protected ConfiguratorService $service;
+
+    public function __construct(TranslatorService $translator, MenuHelper $menuHelper, ConfSession $confSessionModel, ConfiguratorService $service)
+    {
+        $this->translator = $translator;
+        $this->menuHelper = $menuHelper;
+        $this->confSessionModel = $confSessionModel;
+        $this->service = $service;
+    }
 
     /**
      * Show the main page of the configurator.
@@ -15,7 +26,7 @@ class ConfiguratorController_Base extends Controller
         $user = $this->getContext('user');
 
         /** @var ConfSession_Base $confSessionModel */
-        $confSessionModel = $this->getModel('ConfSession');
+        $confSessionModel = $this->confSessionModel;
         
         // 1. LÓGICA DE CARGA DE LA SESIÓN DE CONFIGURACIÓN - for the future
         //$activeSession = null;
@@ -72,23 +83,22 @@ class ConfiguratorController_Base extends Controller
         // 3. Inyectamos este array en la página usando nuestro método `addJson`.
         $view->addJson('configurator-translations', $jsTranslations);
         
-        $this->getHelper("Menu")->prepareMenuData($view,'configurator_title');        
+        $this->menuHelper->prepareMenuData($view,'configurator_title');        
         return $this->view($view);
     }
 
-        /**
+    /**
      * API Endpoint para obtener la lista de modelos de vehículos disponibles.
      * Devuelve los modelos en formato JSON.
      */
     public function getModelsAPI()
     {
         try {            
-            $carModels = $this->_getAllCarModels();
+            $carModels = $this->service->_getAllCarModels();
             return $this->json(['models' => $carModels]);
 
         } catch (Exception $e) {
             // Manejar cualquier error de base de datos o de otro tipo.
-            debug("Error en getModelsAPI: ",$e->getMessage(),false);
             return $this->jsonError('No se pudieron cargar los modelos.', 500);
         }
     }
@@ -108,8 +118,8 @@ class ConfiguratorController_Base extends Controller
             $input = json_decode(file_get_contents('php://input'));
             $carModelId = (int)($input->modelId ?? 0);
 
-            $carModel = $this->getModel('CarModel')->find($carModelId);
-            if (!$carModel) {
+            $modelExist = $this->service->carModelExists($carModelId);
+            if (!$modelExist) {
                 return $this->jsonError('El modelo seleccionado no existe.', 400);
             }
 
@@ -141,7 +151,7 @@ class ConfiguratorController_Base extends Controller
             $confSession->resetConfiguration();
 
             // Obtenemos de nuevo la lista de modelos
-            $carModels = $this->_getAllCarModels();
+            $carModels = $this->service->_getAllCarModels();
 
             return $this->json([
                 'activeSession' => $confSession->toArray(),
@@ -173,14 +183,12 @@ class ConfiguratorController_Base extends Controller
             // 2. Lógica de obtención de datos.
             // $colors = $this->getModel('Color')->findAll('id_model', $confSession->id_model);
 
-            //testing hasMany() ORM relation
-            $carModel = $this->getModel('CarModel')->find($confSession->id_model);
-            $colors = $carModel->colors;
+            $colors = $this->service->getColorsForCarModel($confSession->id_model);
 
-            $totalPrice = $this->getService('Configurator')->calculateTotal($confSession);
+            $totalPrice = $this->service->calculateTotal($confSession);
 
             // 3. Lógica de formateo y traducción.
-            $translatedColors = $this->_prepareColors($colors);
+            $translatedColors = $this->service->prepareColors($colors);
 
             // 4. Devolver la respuesta JSON final.
             return $this->json([
@@ -209,7 +217,7 @@ class ConfiguratorController_Base extends Controller
             $colorId = (int)($input->colorId ?? 0);
 
             // ANTES de guardar, debemos comprobar si el color es válido PARA ESTE MODELO.
-            $color = $this->getModel('Color')->find($colorId);
+            $color = $this->service->getColor($colorId);
             
             if (!$color || $color->id_model !== $confSession->id_model) {
                 // ¡ATAQUE DETECTADO! O un simple error.
@@ -243,11 +251,12 @@ class ConfiguratorController_Base extends Controller
             
             // Obtenemos los extras para el modelo de esta sesión.
             $carModelId = $confSession->id_model;
-            //testing "belongsToMany" ORM relation 
-            $extras = $this->getModel('CarModel')->find($carModelId)->extras;
-            $translatedExtras = $this->_prepareExtras($extras);
+             
+            $extras = $this->service->getExtrasForCarModel($carModelId);
 
-            $totalPrice = $this->getService('Configurator')->calculateTotal($confSession);
+            $translatedExtras = $this->service->prepareExtras($extras);
+
+            $totalPrice = $this->service->calculateTotal($confSession);
 
             return $this->json([
                 'activeSession' => $confSession->toArray(),
@@ -275,7 +284,7 @@ class ConfiguratorController_Base extends Controller
             $input = json_decode(file_get_contents('php://input'));
             $extraIds = (array)($input->extraIds ?? []);
             
-            $this->getService('Configurator')->saveExtras($confSession, $extraIds); 
+            $this->service->saveExtras($confSession, $extraIds); 
 
             $include = $_GET['include'] ?? null;
             if ($include === 'next-step') {
@@ -284,7 +293,6 @@ class ConfiguratorController_Base extends Controller
             return $this->json();      
 
         } catch (Exception $e) {
-            debug("Error en SaveExtras: " . $e->getMessage());
             return $this->jsonError('Error al procesar la selección.', 500);
         }
     }
@@ -298,7 +306,7 @@ class ConfiguratorController_Base extends Controller
             if($confSession === null) $confSession = $this->_getAndValidateSession($sessionId);
 
             // --- 2. RECOPILAR TODOS LOS DATOS PARA EL RESUMEN ---
-            $configuratorService = $this->getService('Configurator');            
+            $configuratorService = $this->service;            
             $totalPrice = $configuratorService->calculateTotal($confSession); 
             $summaryData = $configuratorService->getSummaryData($confSession);
             
@@ -309,7 +317,6 @@ class ConfiguratorController_Base extends Controller
             ]);
 
         } catch (Exception $e) {
-            debug("Error en getSummaryForSessionAPI: " . $e->getMessage());
             return $this->jsonError('Error al procesar la selección.', 500);
         }
     }
@@ -331,7 +338,7 @@ class ConfiguratorController_Base extends Controller
             throw new Exception("Acceso no autorizado.", 401);
         }
 
-        $confSession = $this->getModel('ConfSession')->find((int)$sessionId);
+        $confSession = $this->confSessionModel->find((int)$sessionId);
 
         // Comprobación 1: ¿Existe la sesión?
         if (!$confSession) {
@@ -350,76 +357,6 @@ class ConfiguratorController_Base extends Controller
         
         // Si todas las comprobaciones pasan, devolvemos la sesión.
         return $confSession;
-    }
-
-    /**
-     * Helper privado para obtener y formatear la lista de modelos.
-     * Esta lógica ahora es reutilizable.
-     *
-     * @return array
-     */
-    protected function _getAllCarModels()
-    {
-        // 1. Buscamos todos los modelos.
-        $carModels = $this->getModel('CarModel')->all(); 
-
-        // 2. Mapeamos y formateamos los datos.
-        $data = $carModels->map(function ($carModel) {
-            return [
-                'id' => $carModel->id_model,
-                'name' => $this->translate($carModel->name), // Aprovechamos para traducir
-                'price' => (float) $carModel->price,
-                'image' => $this->_getFirstColorImageForModel($carModel->id_model)
-            ];
-        });
-
-        // Devolvemos la colección de datos formateados.
-        return $data->toArray();
-    }
-    protected function _prepareExtras($compatibleExtras)
-    {
-        return $compatibleExtras->map(function ($extra) {
-            return [
-                'id_extra' => $extra->id_extra,
-                'name' => $this->translate($extra->name),
-                'description' => $this->translate($extra->description),
-                'price' => (float) $extra->price,
-                'models' => $extra->models,
-            ];
-        });
-    }
-
-
-    /**
-     * Formatea y traduce una colección de objetos Color para su uso en la API.
-     *
-     * @param Collection $colorsCollection La colección de objetos Color_Base.
-     * @return array Un array de arrays con los datos de los colores listos para JSON.
-     */
-    protected function _prepareColors(Collection $colorsCollection)
-    {
-        // La lógica de transformación ahora vive aquí.
-        $formatted = $colorsCollection->map(function ($color) {
-            return [
-                'id_color' => $color->id_color,
-                'id_model' => $color->id_model,
-                'name' => $this->translate($color->name),
-                'img' => $color->img,
-                'price_increase' => (float) $color->price_increase
-            ];
-        });
-        
-        // Devolvemos el array final.
-        return $formatted->toArray(); //
-    }
-
-    /**
-     * Helper privado para obtener la imagen del primer color de un modelo.
-     */
-    protected function _getFirstColorImageForModel($carModelId)
-    {
-        $color = $this->getModel('Color')->find($carModelId,"id_model");
-        return $color ? $color->img : '/1base/img/default_model.jpg'; // Imagen de fallback
     }
 
 
