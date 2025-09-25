@@ -10,6 +10,10 @@ class App
 {
     private static ?App $instance = null;
 
+    public string $rootPath;
+
+    private Router $router;
+
     public static function getInstance(): App {
         if (self::$instance === null) {
             throw new RuntimeException("App has not been initialized");
@@ -34,17 +38,25 @@ class App
     private $modelFactory = null; //guardamos la fábrica la primera vez que se genera para cachear las conexiones con bases de datos
 
     private array $buildingStack = [];
-    private array $cachedComponents = [];
+    protected array $cachedComponents = [];
 
     //private $isApiRoute = false; // New property to remember the type of route.
     /**
      * The builder stores the configuration
      * @param array $config Application configuration.
      */
-    public function __construct(array $config)
+    public function __construct(array $config, Router $router, ?string $rootPath = null)
     {
         $this->config = $config;
-        self::$instance = $this;
+        $this->router = $router;
+        $this->rootPath = $rootPath ?? dirname(__DIR__);
+        self::$instance = $this;     
+        
+        //TO-DO: No Class should receive App
+
+        //TO-DO: AuthService shouldn't set User, Layer and Level, it should return the instruccion to App to handle
+
+        //TO-DO: New Class: LOADER - Refactor getComponent, buildComponent, findFiles to new class Loader. Then, inyect on App, and from there to Translator, View. This Loader could be used as support class for testing, minimizing/eliminating the need of "require/use" also in that envioroment.    
     }
 
     /** 
@@ -57,9 +69,7 @@ class App
         try {
             $this->prepareDebugging();
             // 1. Obtain the router's action plan.
-            require_once 'lib/Router.php';
-            $router = new Router();
-            $requestedRouteInfo = $router->getRouteInfo();   
+            $requestedRouteInfo = $this->router->getRouteInfo();   
 
             // 2. Apply the session security logic.
             require_once 'lib/components/Component.php';
@@ -86,28 +96,27 @@ class App
 
                 case 'legacy_script':
                     // If it is a legacy route, we execute the script.
-                    $scriptPath = __DIR__ . '/../' . $finalRouteInfo['script_path'];
+                    $scriptPath = $this->rootPath.'/'.$finalRouteInfo['script_path'];
                     
                     // We verify that the file exists in that fixed location.
                     if (file_exists($scriptPath)) {
                         // 3. We execute it.
                         require_once $scriptPath;
+                        exit();
                     } else {
                         // If the script does not exist, it is a 404 error.
                         throw new Exception("Script legacy no encontrado: {$finalRouteInfo['script_name']}", 404);
                     }
                     break;
-
                 default:
                     // If the Router returns an unknown, it is an internal error.
-                    throw new Exception("Tipo de ruta desconocido: '{$finalRouteInfo['type']}'", 500);      
+                    throw new Exception("Tipo de ruta desconocido: '{$finalRouteInfo['type']}'", 500);   
             }
-            exit();
         } catch (Throwable $e) {
             // Captures any error or exception that occurs during execution
             // And it passes it to our central error handler.
-            //$this->handleError($e);
-            error_log($e);
+            $this->logError($e);
+            throw $e;
         }
     }
 
@@ -233,8 +242,7 @@ class App
         }
         
         // CASO 3: Usuario autenticado. Con caché.
-        if ($this->userLayer) {
-            
+        if ($this->userLayer) {            
             if ($this->modelFactory === null) {
                 $this->modelFactory = $this->getComponent('factory', 'ModelFactory', [$this], $this->userLayer);
             }
@@ -265,13 +273,7 @@ class App
         require_once 'lib/components/Helper.php';
         return $this->buildComponent('helper', $helperName);        
     }
-
-
     
-
-   
-
-
     public function buildComponent(string $type, string $name, ?int $userLayer = null, bool $exactLayerOnly = false)
     {        
         if (isset($this->buildingStack[$type.$name])) {
@@ -317,7 +319,10 @@ class App
                             => $this->getModel($dependencyClass), //By convention, we assume model
                     };
                     $injectDependencies[] = $component;
-                    $this->cachedComponents[$dependencyClass] = $component;
+                    
+                    $isModel = !str_ends_with($dependencyClass, 'Service') && !str_ends_with($dependencyClass, 'Helper') && $dependencyClass !== 'App';
+
+                    if(!$isModel) $this->cachedComponents[$dependencyClass] = $component;
                 }
             }
         }
@@ -412,7 +417,7 @@ class App
 
             $filePath = "{$layerDir}/{$relativePath}";
             
-            $absolutePath = __DIR__ . '/../' . $filePath; //We check if the file exists
+            $absolutePath = $this->rootPath . '/' . $filePath;  //We check if the file exists
 
             if (file_exists($absolutePath)) {
                 if (is_array($loadFiles)) {
@@ -588,14 +593,14 @@ class App
         return $this->getComponent('helper', $helperName.'Helper', $constructorArgs);
     }
     
-    public function redirect(string $url, $statusCode = 200)
+    public function redirect(string $url, $statusCode = 200) : never
     {
         $redirectResponse = $this->getResponse('redirect', $url, $statusCode);
         $this->sendResponse($redirectResponse);
         exit();
     }
 
-    private function sendResponse(Response $response)
+    protected function sendResponse(Response $response)
     {
         // --- Step 1: Send headers ---
         
@@ -613,8 +618,8 @@ class App
 
         if ($response instanceof ViewResponse) {
             // If the answer is a view, we call your render method ().
-            $content->render($response->getUserLayer());
-
+            $viewRendered = $content->render($response->getUserLayer());
+            echo $viewRendered;
         } elseif ($response instanceof JsonResponse) {
             // If it is JSON, we encode the content (which is an array/object) and printed it.
             echo json_encode($content);
@@ -662,6 +667,98 @@ class App
         }
     }
 
-    // --- Aquí irán los demás métodos:
-    // - handleError()
+    protected function logError(Throwable $e)
+    {
+        if (empty($this->config['error_log_path'])) {
+            return;
+        }
+
+        $timestamp = date('Y-m-d H:i:s');
+        $argLimit = $this->config['log_arg_length_limit'] ?? 512; // Un límite por defecto si no está en config
+
+        // Construcción del Stack Trace
+        $traceLines = [];
+        $trace = $e->getTrace();
+        
+        foreach ($trace as $i => $frame) {
+            $traceLines[] = sprintf(
+                "#%d %s(%d): %s",
+                $i,
+                $frame['file'] ?? '[internal function]',
+                $frame['line'] ?? '?',
+                $this->formatTraceFunctionCall($frame, $argLimit) // Pasamos el límite
+            );
+        }
+        // Añadimos la línea final {main}
+        $traceLines[] = '#' . (count($trace)) . ' {main}';
+        
+        $customTraceString = implode("\n", $traceLines);
+
+        // Mensaje de log final
+        $logMessage = sprintf(
+            "[%s]\n%s: \"%s\" in %s:%d\n\nStack trace:\n%s\n",
+            $timestamp,
+            get_class($e),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $customTraceString
+        );
+        
+        $logEntry = $logMessage . str_repeat('-', 80) . "\n\n"; // Doble salto de línea para más espacio
+
+        @file_put_contents($this->rootPath . $this->config['error_log_path'], $logEntry, FILE_APPEND);
+    }
+
+    /**
+     * Formatea una llamada a función/método desde un frame del stack trace.
+     */
+    private function formatTraceFunctionCall(array $frame, int $argLimit): string
+    {
+        $call = '';
+        if (isset($frame['class'])) $call .= $frame['class'];
+        if (isset($frame['type'])) $call .= $frame['type'];
+        if (isset($frame['function'])) $call .= $frame['function'];
+        
+        $call .= '(' . $this->formatArgs($frame['args'] ?? [], $argLimit) . ')';
+
+        return $call;
+    }
+
+    /**
+     * Formatea los argumentos de una función para el log.
+     */
+    private function formatArgs(array $args, int $argLimit): string
+    {
+        if (empty($args)) {
+            return '';
+        }
+
+        $output = [];
+        foreach ($args as $arg) {
+            // Usamos JSON_PRETTY_PRINT para una legibilidad espectacular
+            $argString = json_encode($arg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+            // Si el argumento es un objeto complejo o un array, puede tener saltos de línea.
+            // Lo indentamos para que quede bien en el log.
+            if (strpos($argString, "\n") !== false) {
+                $argString = str_replace("\n", "\n    ", $argString); // Indenta cada línea
+            }
+
+            // Aplicamos el límite de longitud configurable (solo si es mayor que 0)
+            if ($argLimit > 0 && strlen($argString) > $argLimit) {
+                $argString = substr($argString, 0, $argLimit) . '... (truncated)';
+            }
+            $output[] = $argString;
+        }
+
+        $formattedArgs = implode(', ', $output);
+
+        // Si los argumentos son multilínea, los formateamos de forma especial
+        if (strpos($formattedArgs, "\n") !== false) {
+            return "\n    " . $formattedArgs . "\n";
+        }
+
+        return $formattedArgs;
+    }
 }

@@ -1,7 +1,13 @@
 listar_contenido.php
+listado.txt
 log_debug.md
 log_proceso.md
 phpinfo.txt
 test.php
 cache/*
 !cache/.gitkeep
+.vscode/
+.history/
+historial.php
+vendor/
+.phpunit.result.cache

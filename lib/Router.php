@@ -3,9 +3,11 @@ class Router
 {
     private $routes = [];
 
+    public $rootFinder = '/..';
+
     public function __construct()
     {
-        $this->routes = require __DIR__ . '/../routes.php';
+        $this->routes = require __DIR__ . $this->rootFinder .'/routes.php';
     }
 
     /**

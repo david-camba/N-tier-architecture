@@ -1,5 +1,7 @@
 <?php
 return [
+    'error_log_path' => '/logs/app_error.log',
+    'log_arg_length_limit' => 1024, // 0 para ilimitado. 1024 = 1KB
     // Types of components that can be modify, extend or overwrite on superior layers, each one associate with their directory
     'component_types' => [
         'controller' => 'controllers',
@@ -71,5 +73,5 @@ return [
     // General context for our specific app case
     'general' => [
         'brandName' => 'Audi'
-    ]
+    ],
 ];

@@ -1,6 +1,3 @@
-
-
-
 <?php
 class Collection implements IteratorAggregate, Countable
 {

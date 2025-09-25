@@ -35,6 +35,7 @@ class ConfiguratorService_Base extends Service implements ConfiguratorService
         }
 
         // 1. Guardamos los extras como un string separado por comas.
+        // Nota: si no hay extras, se guardará una cadena vacia.
         $confSession->extras = implode(',', $extraIds);
         $confSession->save();
     }
@@ -48,7 +49,7 @@ class ConfiguratorService_Base extends Service implements ConfiguratorService
         $color = $this->colorModel->find($confSession->id_color);        
         
         // Extras (necesitamos los objetos completos, no solo los IDs)
-        $extraIds = explode(',', $confSession->extras);
+        $extraIds = array_filter(explode(',', $confSession->extras ?? ''));
         $extras = [];
         if (!empty($extraIds)) {
             $allExtras = $this->extraModel->findAll('id_extra', $extraIds); // findAll puede buscar por un array de IDs

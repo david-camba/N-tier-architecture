@@ -1,7 +1,7 @@
 <?php
 class ModelFactory_3Audi extends ModelFactory_Base
 {
-    public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null)
+    public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null) : ORM
     {        
         $pdo = match ($connectionType) {
             'productAudi' => $this->getProductAudiDBConnection(), //case: Audi needs an exclusive DB for their products (other brands include it in master)

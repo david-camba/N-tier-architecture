@@ -25,6 +25,10 @@
 // jerarquía de capas, etc.).
 $config = require __DIR__ . '/../config.php';
 
+// Cargamos el router para inyectar en la App posteriormente
+require_once __DIR__ . '/../lib/Router.php';
+$router = new Router();   
+
 //DEBUG FUNCTIONS
 require_once __DIR__ . '/../debug.php';
 
@@ -35,10 +39,6 @@ require_once __DIR__ . '/../debug.php';
 // Hacemos que los datos de la sesión (ej. $_SESSION['user_id']) estén
 // disponibles para el resto de la aplicación.
 session_start();
-
-
-
-
 
 // -------------------------------------------------------------------------
 // 3. PREPARAR ENTORNO
@@ -69,12 +69,13 @@ set_include_path(implode(PATH_SEPARATOR, $absoluteIncludePaths));
 // -------------------------------------------------------------------------
 // Cargamos la clase principal de nuestra aplicación.
 // Gracias al include_path, PHP la encontrará en 1base/lib/
-require_once __DIR__ . '/../lib/App.php';
+require_once __DIR__ . '/../lib/App.php';        
 
 try {
     // Creamos una instancia de nuestra aplicación, pasándole la configuración
     // que hemos cargado. La clase App es ahora una "fábrica" genérica.
-    $app = new App($config);
+    
+    $app = new App($config, $router);
 
     // Le damos el control. A partir de aquí, la clase App orquesta todo.
     $app->run();
@@ -86,8 +87,19 @@ try {
     // en lugar de mostrarlo en pantalla.
     error_log($e); // Registra el error completo en el log de errores de PHP.
 
-    // Mostramos una página de error genérica y amigable para el usuario.
-    http_response_code(500);
-    echo "<h1>Error del Sistema</h1>";
-    echo "<p>Ha ocurrido un problema inesperado. Nuestro equipo técnico ha sido notificado. Por favor, inténtelo de nuevo más tarde.</p>";
+    $errorMessage = "Critical error. Our technical team has been notified.";
+    $goBack = "Go back to the homepage";
+
+    echo '
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center;">
+        <h1 style="font-size:2.5rem; margin-bottom:20px;">' . htmlspecialchars($errorMessage) . '</h1>
+        <a href="/app" style="
+            font-size:1.5rem;
+            color:#007BFF;
+            text-decoration:none;
+            transition:color 0.3s ease;
+        " onmouseover="this.style.color=\'#0056b3\'" onmouseout="this.style.color=\'#007BFF\'">
+            ' . htmlspecialchars($goBack) . '
+        </a>
+    </div>';
 }

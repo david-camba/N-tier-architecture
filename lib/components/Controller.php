@@ -4,7 +4,10 @@
  * Proporciona funcionalidades y propiedades comunes.
  */
 abstract class Controller extends Component
-{    
+{  
+    
+    public $rootFinder = '/../..';
+
     /**
      * @var bool Activa o desactiva la herencia de roles jerárquica para este controlador.
      */
@@ -69,7 +72,7 @@ abstract class Controller extends Component
                 // --- CSS ---
                 // Construimos la ruta PÚBLICA y la ruta del SISTEMA DE ARCHIVOS.
                 $cssWebPath = "/{$layer['directory']}/css/style.css";
-                $cssFilePath = dirname(__DIR__, 2) . "/public" . $cssWebPath;
+                $cssFilePath = __DIR__ . $this->rootFinder . "/public" . $cssWebPath;
                 
                 if (file_exists($cssFilePath)) {
                     $cssFiles[] = $cssWebPath;
@@ -78,7 +81,7 @@ abstract class Controller extends Component
                 // --- JS ---
                 // Hacemos lo mismo para un archivo JS global, si existe.
                 $jsWebPath = "/{$layer['directory']}/js/global.js";
-                $jsFilePath = dirname(__DIR__, 2) . "/public" . $jsWebPath;
+                $jsFilePath = __DIR__ . $this->rootFinder . "/public" . $jsWebPath;
 
                 if (file_exists($jsFilePath)) {
                     $jsFiles[] = $jsWebPath;

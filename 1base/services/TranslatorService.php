@@ -35,6 +35,8 @@ class TranslatorService_Base extends Service implements TranslatorService
      */
     public function __construct(App $app)
     {
+        //TO-DO: deberia inyectarle una clase "Request" que contenga los datos de la petición y que la reciba o la setee App. Así no trabajo con globales.
+
         $this->app = $app;
         $this->languageCode = $this->getLanguageCode();   
         $this->app->setContext('language_code', $this->languageCode);     
@@ -119,7 +121,7 @@ class TranslatorService_Base extends Service implements TranslatorService
             // 4. Si se encuentra un archivo de traducción para este nivel...
             if ($fileInfo) {
                 // ...cargamos su contenido...
-                $translations = require_once $fileInfo['path'];
+                $translations = require $fileInfo['path'];
                 
                 // ...y lo fusionamos con lo que ya teníamos.
                 // Las claves en $translations sobreescribirán a las de $mergedTranslations.

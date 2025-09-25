@@ -4,6 +4,8 @@ class ModelFactory_Base
     protected App $app;
     protected array $connections = []; // Caché de conexiones, ahora vive aquí.
 
+    public $rootFinder = '/../..';
+
     public function __construct(App $app)
     {
         $this->app = $app;        
@@ -11,7 +13,7 @@ class ModelFactory_Base
         require_once 'lib/support/Collection.php'; //define collection objects that will be return by the models
     }
 
-    public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null)
+    public function create($modelName, $connectionType, array $constructorArgs=[], $userLevel = null) : ORM
     {
         $pdo = match ($connectionType) {
             'master' => $this->getMasterConnection(),
@@ -19,7 +21,9 @@ class ModelFactory_Base
             default => throw new Exception("Tipo de conexión desconocido: {$connectionType}"),
         };
         
-        return $this->app->getComponent('model', $modelName, [$this->app, $pdo, $constructorArgs], $userLevel); //we pass the ready PDO to the model constructor
+        $model = $this->app->getComponent('model', $modelName, [$this->app, $pdo, $constructorArgs], $userLevel);
+        
+        return $model; //we pass the ready PDO to the model constructor
     }
     
     // --- MÉTODOS DE CONEXIÓN, AHORA DENTRO DE LA FÁBRICA ---
@@ -56,7 +60,7 @@ class ModelFactory_Base
     }
 
     protected function _setSQLitePDO($dbName){
-        $path = dirname(__DIR__, 2) . "/databases/{$dbName}.sqlite";
+        $path = __DIR__ . $this->rootFinder . "/databases/{$dbName}.sqlite";
         $this->connections[$dbName] = new PDO('sqlite:' . $path);
         $this->connections[$dbName]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->connections[$dbName]->exec('PRAGMA foreign_keys = ON;');

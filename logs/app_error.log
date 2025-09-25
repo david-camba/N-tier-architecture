@@ -1,0 +1,174 @@
+[2025-09-25 21:39:15]
+Exception: "Tipo de conexión desconocido: productAudi" in C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\1base\factories\ModelFactory.php:21
+Stack trace:
+#0 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(256): ModelFactory_Base->create("CarModel", "productAudi", [], 2)
+#1 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(326): App->getModel("CarModel")
+#2 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(276): App->buildComponent("service", "ConfiguratorService")
+#3 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\TestApp.php(89): App->buildService("ConfiguratorService")
+#4 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(321): TestApp->buildService("ConfiguratorService")
+#5 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(271): App->buildComponent("controller", "ConfiguratorController")
+#6 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(197): App->buildController("ConfiguratorController")
+#7 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(83): App->dispatchAction(
+    {
+        "type": "mvc_action",
+        "controller": "ConfiguratorController",
+        "action": "saveModelsAPI",
+        "params": [
+            "1"
+        ],
+        "api_route": true
+    }
+)
+#8 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\integration\ConfiguratorApiIntegrationTest.php(135): App->run()
+#9 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(1317): ConfiguratorApiIntegrationTest->testSaveModelApiUnder3LayerCannotAccessAudiProductDatabase()
+#10 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(517): PHPUnit\Framework\TestCase->runTest()
+#11 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestRunner\TestRunner.php(99): PHPUnit\Framework\TestCase->runBare()
+#12 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(357): PHPUnit\Framework\TestRunner->run({})
+#13 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestCase->run()
+#14 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#15 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#16 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#17 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\Application.php(229): PHPUnit\TextUI\TestRunner->run({}, {}, {})
+#18 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\phpunit(104): PHPUnit\TextUI\Application->run(
+    [
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--teamcity"
+    ]
+)
+#19 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\bin\phpunit(122): include("C:\\Users\\MyPC\\Desktop\\WORKING\\A Back2Programming\\Project - Ntier Architecture - PHP\\vendor\\phpunit\\phpunit\\phpunit")
+#20 {main}
+--------------------------------------------------------------------------------
+
+[2025-09-25 22:30:29]
+Exception: "Tipo de conexión desconocido: productAudi" in C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\1base\factories\ModelFactory.php:21
+
+Stack trace:
+#0 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(262): ModelFactory_Base->create("CarModel", "productAudi", [], 2)
+#1 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(332): App->getModel("CarModel")
+#2 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(282): App->buildComponent("service", "ConfiguratorService")
+#3 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\TestApp.php(89): App->buildService("ConfiguratorService")
+#4 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(327): TestApp->buildService("ConfiguratorService")
+#5 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(277): App->buildComponent("controller", "ConfiguratorController")
+#6 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(203): App->buildController("ConfiguratorController")
+#7 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(89): App->dispatchAction(
+    {
+        "type": "mvc_action",
+        "controller": "ConfiguratorController",
+        "action": "saveModelsAPI",
+        "params": [
+            "1"
+        ],
+        "api_route": true
+    }
+)
+#8 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\integration\ConfiguratorApiIntegrationTest.php(135): App->run()
+#9 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(1317): ConfiguratorApiIntegrationTest->testSaveModelApiUnder3LayerCannotAccessAudiProductDatabase()
+#10 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(517): PHPUnit\Framework\TestCase->runTest()
+#11 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestRunner\TestRunner.php(99): PHPUnit\Framework\TestCase->runBare()
+#12 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(357): PHPUnit\Framework\TestRunner->run({})
+#13 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestCase->run()
+#14 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#15 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#16 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#17 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\Application.php(229): PHPUnit\TextUI\TestRunner->run({}, {}, {})
+#18 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\phpunit(104): PHPUnit\TextUI\Application->run(
+    [
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--teamcity"
+    ]
+)
+#19 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\bin\phpunit(122): include("C:\\Users\\MyPC\\Desktop\\WORKING\\A Back2Programming\\Project - Ntier Architecture - PHP\\vendor\\phpunit\\phpunit\\phpunit")
+#20 {main}
+--------------------------------------------------------------------------------
+
+[2025-09-25 22:30:59]
+Exception: "Tipo de conexión desconocido: productAudi" in C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\1base\factories\ModelFactory.php:21
+
+Stack trace:
+#0 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(262): ModelFactory_Base->create("CarModel", "productAudi", [], 2)
+#1 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(332): App->getModel("CarModel")
+#2 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(282): App->buildComponent("service", "ConfiguratorService")
+#3 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\TestApp.php(89): App->buildService("ConfiguratorService")
+#4 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(327): TestApp->buildService("ConfiguratorService")
+#5 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(277): App->buildComponent("controller", "ConfiguratorController")
+#6 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(203): App->buildController("ConfiguratorController")
+#7 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(89): App->dispatchAction(
+    {
+        "type": "mvc_action",
+        "controller": "ConfiguratorController",
+        "action": "saveModelsAPI",
+        "params": [
+            "1"
+        ],
+        "api_route": true
+    }
+)
+#8 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\tests\integration\ConfiguratorApiIntegrationTest.php(135): App->run()
+#9 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(1317): ConfiguratorApiIntegrationTest->testSaveModelApiUnder3LayerCannotAccessAudiProductDatabase()
+#10 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(517): PHPUnit\Framework\TestCase->runTest()
+#11 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestRunner\TestRunner.php(99): PHPUnit\Framework\TestCase->runBare()
+#12 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestCase.php(357): PHPUnit\Framework\TestRunner->run({})
+#13 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestCase->run()
+#14 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#15 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\Framework\TestSuite.php(374): PHPUnit\Framework\TestSuite->run()
+#16 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#17 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\src\TextUI\Application.php(229): PHPUnit\TextUI\TestRunner->run({}, {}, {})
+#18 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\phpunit\phpunit\phpunit(104): PHPUnit\TextUI\Application->run(
+    [
+        "vendor/bin/phpunit",
+        "--colors=never",
+        "--teamcity"
+    ]
+)
+#19 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\vendor\bin\phpunit(122): include("C:\\Users\\MyPC\\Desktop\\WORKING\\A Back2Programming\\Project - Ntier Architecture - PHP\\vendor\\phpunit\\phpunit\\phpunit")
+#20 {main}
+--------------------------------------------------------------------------------
+
+[2025-09-25 22:32:27]
+Exception: "Tipo de conexión desconocido: productAudi" in C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\1base\factories\ModelFactory.php:21
+
+Stack trace:
+#0 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(249): ModelFactory_Base->create("CarModel", "productAudi", [], 2)
+#1 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(319): App->getModel("CarModel")
+#2 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(269): App->buildComponent("service", "ConfiguratorService")
+#3 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(314): App->buildService("ConfiguratorService")
+#4 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(264): App->buildComponent("controller", "ConfiguratorController")
+#5 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(190): App->buildController("ConfiguratorController")
+#6 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(89): App->dispatchAction(
+    {
+        "type": "mvc_action",
+        "controller": "ConfiguratorController",
+        "action": "showConfigurator",
+        "params": [],
+        "api_route": false
+    }
+)
+#7 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\public\index.php(81): App->run()
+#8 {main}
+--------------------------------------------------------------------------------
+
+[2025-09-25 22:38:14]
+Exception: "Tipo de conexión desconocido: productAudi" in C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\1base\factories\ModelFactory.php:21
+
+Stack trace:
+#0 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(249): ModelFactory_Base->create("CarModel", "productAudi", [], 2)
+#1 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(319): App->getModel("CarModel")
+#2 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(269): App->buildComponent("service", "ConfiguratorService")
+#3 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(314): App->buildService("ConfiguratorService")
+#4 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(264): App->buildComponent("controller", "ConfiguratorController")
+#5 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(190): App->buildController("ConfiguratorController")
+#6 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\lib\App.php(89): App->dispatchAction(
+    {
+        "type": "mvc_action",
+        "controller": "ConfiguratorController",
+        "action": "showConfigurator",
+        "params": [],
+        "api_route": false
+    }
+)
+#7 C:\Users\MyPC\Desktop\WORKING\A Back2Programming\Project - Ntier Architecture - PHP\public\index.php(81): App->run()
+#8 {main}
+--------------------------------------------------------------------------------
+

@@ -102,7 +102,7 @@ class View
 
         $userToken = $user ? $user->token : "noLog";
 
-        $basePath = realpath(__DIR__ . '/../cache'); 
+        $basePath = realpath($this->app->rootPath . '/cache'); 
         $userFolder = $basePath . '/' . $userToken; 
         $viewFolder = $userFolder . '/views' . '/' . $this->viewName; 
         $finalXslFile = $viewFolder . '/' . $this->viewName . '.xsl';
@@ -118,8 +118,7 @@ class View
 
             $proc = new XSLTProcessor();
             $proc->importStyleSheet($xsl);
-            echo $proc->transformToXML($xml);
-            return;
+            return $proc->transformToXML($xml);
         }
 
         // 1. Buscar la vista más específica que exista y no cargarla
@@ -149,8 +148,7 @@ class View
 
         $proc = new XSLTProcessor();
         $proc->importStyleSheet($xsl);
-        echo $proc->transformToXML($xml);
-        return;
+        return $proc->transformToXML($xml);        
     }
 
 

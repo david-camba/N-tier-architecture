@@ -65,7 +65,6 @@ class AuthService_Base extends Service implements AuthService
             if ($currentPath === '/login') {
                 // If you are login and go to login, we redirect it.
                 $this->redirect('/app', 301);
-                exit();
             }
             // If not, you have access.
             return $routeInfo;
@@ -84,7 +83,6 @@ class AuthService_Base extends Service implements AuthService
             } else {
                 // If not, we send to login
                 $this->redirect('/login');
-                exit();
             }
         }
     }
@@ -296,9 +294,8 @@ class AuthService_Base extends Service implements AuthService
         return $this->app->setContext($key, $value);
     }
 
-    protected function redirect($url, $statusCode=200) : void
+    protected function redirect($url, $statusCode=200) : never
     {
         $this->app->redirect($url, $statusCode);
-        exit();
     }
 }
