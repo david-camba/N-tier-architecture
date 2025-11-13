@@ -275,11 +275,8 @@ class ConfiguratorController_Base extends Controller
             $confSession = $this->_getAndValidateSession($sessionId);
 
             $input = json_decode(file_get_contents('php://input'));
-            debug('$input', $input,false);
-            $extraIds = (array)($input->extraIds ?? []);
-
             
-            debug('$extraIds', $extraIds,false);
+            $extraIds = (array)($input->extraIds ?? []);
 
             //Si nos han pedido que limpiemos los extras, dejamos el campo a null
             if(count($extraIds) > 0 && $extraIds[0] === 'cleanExtras'){

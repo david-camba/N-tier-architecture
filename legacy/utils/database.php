@@ -34,7 +34,7 @@ function get_db_connection_dealer()
     // --- Lógica para determinar a qué BBDD conectar ---
     // Los scripts legacy dependen de que el framework moderno haya establecido
     // estas variables de sesión durante el login.
-    $brand =  App::getInstance()->getConfig('general.brandName');
+    $brand =  strtolower( App::getInstance()->getConfig('general.brandName') );
     $dealerId = App::getInstance()->getContext('user')->id_dealer; // Usamos 11 como fallback
 
     if (!$brand || !$dealerId) {
@@ -91,7 +91,7 @@ function get_db_connection_master()
     // --- Lógica para determinar a qué BBDD conectar ---
     // Los scripts legacy dependen de que el framework moderno haya establecido
     // estas variables de sesión durante el login.
-    $brand =  App::getInstance()->getConfig('general.brandName');
+    $brand =  strtolower( App::getInstance()->getConfig('general.brandName') );
 
     if (!$brand) {
         // En un caso real, manejaríamos este error (ej. mostrando un mensaje).

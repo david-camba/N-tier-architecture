@@ -144,5 +144,10 @@ return [
     'banner_little_prince' => 'What is essential is invisible to the eye. - The Little Prince',
     'banner_lifetree_quote' => 'Trees are poems the earth writes upon the sky. - Kahlil Gibran',
 
-    'login_explanation' => '(en ingles) Aqui la explicación que quiera',
+    'login_explanation' => "This demo runs on a fully proprietary and complete development ecosystem:
+
+    <br/><br/>• <b>N-Tier</b>: MVCS Backend Framework featuring a hybrid layer architecture (vertical/horizontal), a dependency injection engine, and native support for integration testing.
+
+    <br/><br/>• <b>LifeTree</b>: Declarative Frontend Framework that defines the UI as a Dynamic Tree following its own composition philosophy — the 'Actor, Stage, Director' model. Performs surgical DOM updates without transpilation.",
+
 ];

@@ -1,0 +1,16 @@
+services:
+  app:
+    container_name: ntier_backend_dev
+    # Le decimos a Docker Compose que construya la imagen
+    # usando el Dockerfile en la carpeta 'docker'
+    build:
+      context: .
+      dockerfile: docker/DockerfileDev
+    ports:
+      # Mapea el puerto 8080 de tu máquina al puerto 80 del contenedor
+      - "8080:80"
+    volumes:
+      # Sincroniza todo tu proyecto con el directorio de trabajo del contenedor
+      # Cualquier cambio en tu código se reflejará al instante.
+      - ./:/var/www/html #desarrollo, enlaza el código con el container
+    restart: unless-stopped

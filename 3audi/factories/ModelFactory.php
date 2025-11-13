@@ -19,7 +19,7 @@ class ModelFactory_3Audi extends ModelFactory_Base
     // --- MÉTODOS DE CONEXIÓN ---
     protected function getProductAudiDBConnection()
     {
-        $brand = App::getInstance()->getConfig('general.brandName');
+        $brand = strtolower( App::getInstance()->getConfig('general.brandName') );
         $dbName = "{$brand}_prod";
 
         if (!isset($this->connections[$dbName])) {

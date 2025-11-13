@@ -1,0 +1,34 @@
+# Archivos y carpetas de Git
+.git
+.gitignore
+
+# Archivos de Docker. No deben ir dentro de la imagen.
+.dockerignore
+docker/DockerfileDev
+docker/DockerfileProd
+docker-compose.yml
+
+# Dependencias que se instalarían dentro del contenedor
+vendor/
+
+# Archivos de configuración y caché de herramientas
+.vscode/
+.history/
+.phpunit.result.cache
+
+# Tests y configuración de testing
+tests/
+phpunit.xml
+test.php
+
+# Logs y archivos temporales/informativos
+listar_contenido.php
+listado.txt
+log_debug.md
+log_proceso.md
+historial.php
+phpinfo.txt
+
+# Documentación
+README.md
+README-es.md

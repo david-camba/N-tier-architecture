@@ -172,9 +172,10 @@ export function h(type, props, ...children) {
                     slotContext = slotContext[slot];
                 }  
             }
+
             //Si existe la lista dinámica porque la hemos fijado dentro del objeto slot, la sacamos de ahí. Sino, se usa la del primer nivel de state
-            //NOTA DE ARQUITECTURA: esta posibilidad dual es probablemente innecesaria. Hay que pulir el manejo de arrays que mezclen indices númericos con strings y además anida los datos de formas más profunda. El objetivo de esta funcionalidad es poder crear rapidamente una lista en cualquier slot sin necesidad de utilizar un componente, por lo que esta complicación puede ser innecesaria. Siempre se puede crear un componente lista sencillo para utilizar cuando sea necesario de forma normal, la gracia de esta solución es poder utilizar listas normales de el primer nivel dentro de slots.
-            props[managerOf] = (slotContext[managerOf]) ? slotContext[managerOf] : state[managerOf];
+            //NOTA DE ARQUITECTURA: esta posibilidad dual es probablemente innecesaria. Hay que pulir el manejo de arrays que mezclen indices númericos con strings y además anida los datos de formas más profunda. El objetivo de esta funcionalidad es poder crear rapidamente una lista en cualquier slot sin necesidad de utilizar un componente, por lo que esta complicación puede ser innecesaria. Siempre se puede crear un componente lista sencillo para utilizar cuando sea necesario de forma normal, la gracia de esta solución es poder utilizar listas normales de el primer nivel dentro de slots, pero implica una refactorización problablemente innecesaria en el uso real
+            //props[managerOf] = (slotContext[managerOf]) ? slotContext[managerOf] : state[managerOf];
 
             props[managerOf] = state[managerOf]; //OVERRIDE: por el momento nos quedaremos con esto
 
@@ -1840,7 +1841,11 @@ export function initComponent(props, innerPropsKeys=[], componentName=''){
         //TO-DO: quizás exponer "setProp" en todos los casos para ser accedido por los target? Implicaría un cambio de lógica solo para las setProps (no permitiría al controller cambiar el tipo), pero centralizaría al modificar solo props. Aún así, habría que mantener los controles en el proxy para los casos de cambiar tipos.
 
         props.setProp = setProp; //para funciones que usen el beforeInitComponent, podremos usar setProp desde la propiedades para poder utilizar otras funciones
+
+        //Durante la ejecución del hook, no registramos los undoneChanges porque ya se van a establecer directamente en este componente y sus hijos durante la definición.
+        scheduler.stopUndoingChanges();
         props.beforeInitComponent(setProp);
+        scheduler.startUndoingChanges();
     }
 
     return setProp;

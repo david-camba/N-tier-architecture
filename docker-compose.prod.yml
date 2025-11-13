@@ -1,0 +1,19 @@
+services:
+  app:
+    container_name: ntier_backend_prod
+    # Le decimos a Docker Compose que construya la imagen
+    # usando el Dockerfile en la carpeta 'docker'
+    build:
+      context: .
+      dockerfile: docker/DockerfileProd
+    ports:
+      # Mapea el puerto 8080 de tu máquina al puerto 80 del contenedor
+      - "8080:80"
+    volumes:
+      # Volumen nombrado para persistir los logs de tu aplicación
+      - logs_data:/var/www/html/logs
+    restart: unless-stopped
+
+# Definimos el volumen nombrado en la sección de nivel superior "volumes"
+volumes:
+  logs_data:

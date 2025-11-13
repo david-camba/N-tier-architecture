@@ -51,7 +51,7 @@ class Router
             // ...significa que el navegador pidió un asset que no se encontró físicamente.
             // En lugar de procesarlo como una ruta de la app, devolvemos un 404 y terminamos.            
             http_response_code(404);
-            debug("Error 404: Asset not found", $path, false);
+            //debug("Error 404: Asset not found", $path, false);
             exit(); 
         }
 

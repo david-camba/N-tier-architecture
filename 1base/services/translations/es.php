@@ -139,9 +139,17 @@ return [
     'banner_little_prince' => 'Lo esencial es invisible a los ojos. - El Principito',
     'banner_lifetree_quote' => 'Los árboles son poemas que la tierra escribe en el cielo. - Kahlil Gibran',
 
-    'login_explanation' => 'Framework MVCS (Modelo-Vista-Controlador-Servicios) multicapa vertical y horizontal hecho desde 0. Configurable, motor multicapa de inyección de dependencias y carga de archivos, Service Locator disponible, ORM propio, soporte de módulos legacy independientes, funcionalidades de autenticación y traducción, middleware, testing de integración y unitario, cacheo de vistas, factory de modelos para desacoplar a la DB y mucho mimo puesto en mejorar la experiencia del desarrollador en el manejo de capas. Routing.',
+    'login_explanation' => "Esta demo se ejecuta sobre un ecosistema de desarrollo completo y propio:
+    
+    <br/><br/>• <b>N-Tier</b>: MVCS Backend Framework con arquitectura híbrida de capas (vertical/horizontal) con motor de inyección de dependencias y soporte nativo para testing de integración.
+    
+    <br/><br/>• <b>LifeTree</b>: Framework Frontend declarativo que define la UI como un Árbol Dinámico bajo una filosofía de composición propia: el modelo 'Actor, Escenario, Director'. Actualizaciones quirúrgicas del DOM sin transpilación.",
 
-
+    'clients_error_no_session' => 'Error: La configuración no existe.',
+    'clients_error_not_owner' => 'Error: Esta configuración no te pertenece. No puedes asignarla.',
+    'clients_warning_already_assigned' => 'Advertencia: Esta configuración ya ha sido asignada a un cliente. No se puede reasignar, crea una nueva configuración.',
+    'clients_success_assigned' => '¡Propuesta asignada correctamente al cliente!',
+    'clients_error_assign_failed' => 'Error al asignar la propuesta. Por favor, inténtalo de nuevo.',
+    'clients_error_invalid_configuration' => 'Error: La configuración no es válida. Asegúrate de que el modelo y el color estén asignados.',
+    
 ];
-
-

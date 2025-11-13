@@ -35,7 +35,7 @@ class ModelFactory_Base
      */
     protected function getMasterConnection()
     {
-        $brand = App::getInstance()->getConfig('general.brandName');
+        $brand = strtolower(App::getInstance()->getConfig('general.brandName'));
         $dbName = "{$brand}_master";
 
         if (!isset($this->connections[$dbName])) {
@@ -49,7 +49,7 @@ class ModelFactory_Base
      */
     protected function getDealerConnection()
     {
-        $brand = App::getInstance()->getConfig('general.brandName');
+        $brand = strtolower(App::getInstance()->getConfig('general.brandName'));
         $concessionaireId = App::getInstance()->getContext('user')->id_dealer;
         
         $dbName = "{$brand}_{$concessionaireId}";
@@ -70,7 +70,7 @@ class ModelFactory_Base
     // NOTA DEMO: este método de conexión debería estar solo en Audi, pero lo dejamos aquí para que la demo no de errores nunca si se intenta debugear el configurador de pedidos
     protected function getProductAudiDBConnection()
     {
-        $brand = App::getInstance()->getConfig('general.brandName');
+        $brand = strtolower( App::getInstance()->getConfig('general.brandName') );
         $dbName = "{$brand}_prod";
 
         if (!isset($this->connections[$dbName])) {

@@ -53,6 +53,15 @@ component {display: block}
     padding: 20px;
     border-radius: 10px;
     color: white;
+    margin-top: auto;
+}
+
+.left-box p{
+    display: none;
+}
+
+.login-explanation{
+    font-size: 14px;
 }
 
 /* Caja de login: igual que antes, pero sin forzar 500px que descentraba */
@@ -1322,6 +1331,18 @@ p.views-layer-message {
 .page-order-configurator #global-promo-banner-container #lifetree-promo-banner {
     display: block;
 }
+
+.login-page #global-promo-banner-container #lifetree-promo-banner {
+    display: block;
+    margin-top: 10px;
+    max-width: 380px;
+}
+.login-page #global-promo-banner-container #ntier-promo-banner {
+    min-width: 380px;
+    max-width: 380px;
+}
+
+
 
 /* 1. Banner N-Tier: Un rosa/magenta vibrante que rompe la monotonía */
 #global-promo-banner-container #ntier-promo-banner {

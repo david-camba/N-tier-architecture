@@ -25,8 +25,8 @@ class BannerHelper_Base extends Helper implements BannerHelper
         $princeQuote = $this->translate('banner_little_prince');
         $lifeTreeQuote = $this->translate('banner_lifetree_quote'); 
     
-        $nTierUrl = 'https://www.google.com/';
-        $lifeTreeUrl ='';
+        $nTierUrl = 'https://github.com/dCdV47/N-tier-architecture';
+        $lifeTreeUrl ='https://github.com/dCdV47/lifetree';
 
         // Usamos HEREDOC para construir el HTML de forma limpia.
         $html = <<<HTML
