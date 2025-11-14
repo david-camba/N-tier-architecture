@@ -100,7 +100,7 @@ class AuthController_Base extends Controller
         $setLanguage = '?lang='.$langCode;
 
         //comprobamos a ver si se nos ha pedido redirección
-        $redirect = $_GET['redirect'] ?? null;
+        $redirect = $_GET['redirect'] ?? '';
         $redirect = preg_replace('/[^a-z]/i', '', $redirect); //evitamos inyecciones
 
         //Si se ha solicitado, redirigimos a la demo del LifeTree framework directamente

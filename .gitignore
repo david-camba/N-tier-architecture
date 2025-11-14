@@ -11,3 +11,6 @@ cache/*
 historial.php
 vendor/
 .phpunit.result.cache
+deploy_google.sh
+phpinfo.php
+test_env.sh

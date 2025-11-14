@@ -7,6 +7,7 @@
 docker/DockerfileDev
 docker/DockerfileProd
 docker-compose.yml
+deploy_google.sh
 
 # Dependencias que se instalarían dentro del contenedor
 vendor/
@@ -20,6 +21,8 @@ vendor/
 tests/
 phpunit.xml
 test.php
+phpinfo.php
+test_env.sh
 
 # Logs y archivos temporales/informativos
 listar_contenido.php

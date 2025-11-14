@@ -163,6 +163,9 @@ component {display: block}
 }
 
 /* --- Contenedor Principal --- */
+.login-page {
+    overflow-y: hidden;
+}
 .login-page .language-selector {
     /* La posición que pediste no tocar */
     position: absolute;
