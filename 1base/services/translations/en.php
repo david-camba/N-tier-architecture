@@ -3,7 +3,7 @@
 
 return [
     // --- Login Page ---
-    'login_page_title' => 'N-Tier & LifeTree – Demo',
+    'login_page_title' => 'nTier & LifeTree – Demo',
     'login_header_brand' => 'Welcome to %s', // %s will be replaced by the brand name
     'login_form_username_placeholder' => 'Username',
     'login_form_password_placeholder' => 'Password',
@@ -146,7 +146,7 @@ return [
 
     'login_explanation' => "This demo runs on a fully proprietary and complete development ecosystem:
 
-    <br/><br/>• <b>N-Tier</b>: MVCS Backend Framework featuring a hybrid layer architecture (vertical/horizontal), a dependency injection engine, and native support for integration testing.
+    <br/><br/>• <b>nTier</b>: MVCS Backend Framework featuring a hybrid layer architecture (vertical/horizontal), a dependency injection engine, and native support for integration testing.
 
     <br/><br/>• <b>LifeTree</b>: Declarative Frontend Framework that defines the UI as a Dynamic Tree following its own composition philosophy — the 'Director, Stage, Actor' model. Performs surgical DOM updates without transpilation.",
 
