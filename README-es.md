@@ -1,7 +1,7 @@
 > 📘 **This document is also available in English:**  
 > [Read in English](README.md)
 
-> 🌳 Este backend framework funciona junto con **LifeTree**: mi framework de frontend, disponible en [GitHub](https://github.com/dCdV47/lifetree).
+> 🌳 Este backend framework funciona junto con **LifeTree**: mi framework de frontend, disponible en [GitHub](https://github.com/david-camba/lifetree).
 
 > 🚀 Demo en Vivo Disponible: [Acceder a la Demo 🌐 ](https://david.camba.com)
 
